@@ -1,0 +1,8 @@
+{
+    "cmake.configureOnOpen": true,
+    "files.associations": {
+        "stdbool.h": "c",
+        "iostream": "c",
+        "windows.h": "c"
+    }
+}
