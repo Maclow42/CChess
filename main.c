@@ -35,11 +35,16 @@ int main(int argc, char **argv) {
         for(int j = 0; j < 8; j++)
             board->board[i][j] = newPiece(NONE_PIECE, NONE_COLOR);
     }
-        board->board[0][0] = newPiece(ROCK, WHITE);
-        board->board[0][2] = newPiece(ROCK, WHITE);
-        board->board[1][5] = newPiece(ROCK, WHITE);
-        board->board[3][5] = newPiece(ROCK, WHITE);
-        board->board[2][1] = newPiece(KING, BLACK);
+        
+    board->board[0][0] = newPiece(ROCK, WHITE);
+    board->board[0][2] = newPiece(ROCK, WHITE);
+    board->board[1][5] = newPiece(ROCK, WHITE);
+    board->board[4][5] = newPiece(ROCK, WHITE);
+    board->board[2][1] = newPiece(KING, BLACK);
+    board->board[7][7] = newPiece(KING, WHITE);
+
+    board->black_king_pos = Coords(2, 1);
+    board->white_king_pos = Coords(7, 7);
 
     char current_pos[2], to_pos[2];
     int currentx, currenty, tox, toy;
@@ -47,17 +52,7 @@ int main(int argc, char **argv) {
         printf("\e[1;1H\e[2J");
         printBoard(board);
 
-        int kingx = 0, kingy = 0;
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                if(board->board[i][j].type == KING){
-                    kingx = i;
-                    kingy = j;
-                }
-            }
-        }
-        printf("isChess : %i\n", isInChess(board, Coords(kingx, kingy)));
-        printf("isMate : %i\n", isMate(board, Coords(kingx, kingy)));
+        printf("Game status : %i\n", (int) getGameStatus(board));
 
         printf("Enter a move : ");
         scanf("%s %s", &current_pos, &to_pos);

@@ -161,6 +161,14 @@ bool movePiece(game_board* board, coords* current_pos, coords* dest_pos){
 
         board->board[tox][toy] = board->board[currentx][currenty];
         board->board[currentx][currenty] = newPiece(NONE_PIECE, NONE_COLOR);
+
+        if(board->board[tox][toy].type == KING){
+            if(board->board[tox][toy].color == WHITE)
+                board->white_king_pos = dest_pos;
+            else
+                board->black_king_pos = dest_pos;
+        }
+
         return true;
     }
 
@@ -258,6 +266,33 @@ bool isMate(game_board* board, coords* kingpos){
 
 }
 
+game_status getGameStatus(game_board *board)
+{
+    bool white_chess = isInChess(board, board->white_king_pos);
+    bool white_mate = isMate(board, board->white_king_pos);
+
+    if(white_chess){
+        if(white_mate)
+            return WHITE_MATE;
+        return WHITE_CHESS;
+    }
+    if(white_mate)
+        return WHITE_PAT;
+
+    bool black_chess = isInChess(board, board->black_king_pos);
+    bool black_mate = isMate(board, board->black_king_pos);
+
+    if(black_chess){
+        if(black_mate)
+            return BLACK_MATE;
+        return BLACK_CHESS;
+    }
+    if(black_mate)
+        return BLACK_PAT;
+
+    return RAS;
+}
+
 void printBoard(game_board* board){
 
     printf("     A   B   C   D   E   F   G   H\n");
@@ -311,8 +346,8 @@ game_board* newBoard(){
 }
 
 void initGameBoard(game_board *board){
-    board->white_king = *Coords(4, 0);
-    board->black_king = *Coords(4, 7);
+    board->white_king_pos = Coords(4, 0);
+    board->black_king_pos = Coords(4, 7);
 
     board->board[0][0] = newPiece(ROCK, WHITE);
     board->board[1][0] = newPiece(KNIGHT, WHITE);

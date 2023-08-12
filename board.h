@@ -13,19 +13,24 @@ typedef enum{
     WHITE_PAT,
     BLACK_CHESS,
     BLACK_MATE,
-    BLACK_PAT
+    BLACK_PAT,
+    RAS
 }game_status;
 
 typedef struct{
     piece** board;
-    coords white_king;
-    coords black_king;
+    coords* white_king_pos;
+    coords* black_king_pos;
     game_status status;
+    color_t to_play;
 }game_board;
 
 game_board* newBoard();
 bool isPosAccessible(game_board* board, coords* current_pos, coords* dest_pos);
 bool movePiece(game_board* board, coords* current_pos, coords* dest_pos);
+
 int isInChess(game_board* board, coords* kingpos);
 bool isMate(game_board* board, coords* kingpos);
+game_status getGameStatus(game_board* board);
+
 void printBoard(game_board* board);
