@@ -77,7 +77,7 @@ bool isAccessible_Bishop(piece** board, int currentx, int currenty, int tox, int
     int vect_y = abs(toy - currenty)/(toy - currenty);
 
     for(int i = 1; i < dist; i++){
-        if(board[currentx + vect_x*i][currenty + vect_y*i].color != NONE_PIECE)
+        if(board[currentx + vect_x*i][currenty + vect_y*i].type != NONE_PIECE)
             return false;
     }
 
@@ -102,13 +102,14 @@ bool isPosAccessible(game_board* board, coords* current_pos, coords* dest_pos){
     Arguments:
     */
 
-   int currentx = current_pos->posx, currenty = current_pos->posy;
-   int tox = dest_pos->posx, toy = dest_pos->posy;
+   unsigned int currentx = current_pos->posx;
+   unsigned int currenty = current_pos->posy;
 
-    // check if positions are valids
-    if(currentx < 0 || currenty < 0 || currentx >= 8 || currenty >= 8)
-        return false;
-    if(tox < 0 || toy < 0 || tox >= 8 || toy >= 8)
+   unsigned int tox = dest_pos->posx;
+   unsigned int toy = dest_pos->posy;
+
+    // if coords are not valid then return false
+    if(!(areCoordsValid(current_pos) && areCoordsValid(dest_pos)))
         return false;
 
     // check if there actually is a piece at the indicated current position (if not return false)
@@ -155,6 +156,7 @@ bool isPosAccessible_noPositionCheck(game_board* board, coords* current_pos, coo
 }
 
 bool movePiece(game_board* board, coords* current_pos, coords* dest_pos){
+    // if the piece do not belong to the good player return false
     if(isPosAccessible(board, current_pos, dest_pos)){
         int currentx = current_pos->posx, currenty = current_pos->posy;
         int tox = dest_pos->posx, toy = dest_pos->posy;
@@ -174,6 +176,38 @@ bool movePiece(game_board* board, coords* current_pos, coords* dest_pos){
 
     return false;
 }
+
+bool playerMovePiece(game_board* board, coords* current_pos, coords* dest_pos){
+    if(board->board[current_pos->posx][current_pos->posy].color != board->to_play)
+        return false;
+    
+    piece tmp = board->board[dest_pos->posx][dest_pos->posy];
+
+    if(!movePiece(board, current_pos, dest_pos))
+        return false;
+
+    game_status status = getGameStatus(board);
+    if(board->to_play == WHITE){
+        if(status == WHITE_CHESS || status == WHITE_MATE){
+            movePiece(board, dest_pos, current_pos);
+            board->board[dest_pos->posx][dest_pos->posy] = tmp;
+            return false;
+        }
+    }
+
+    else{
+        if(status == BLACK_CHESS || status == BLACK_MATE){
+            movePiece(board, dest_pos, current_pos);
+            board->board[dest_pos->posx][dest_pos->posy] = tmp;
+            return false;
+        }
+    }
+
+    board->to_play = board->to_play == WHITE ? BLACK : WHITE;
+
+    return true;
+}
+
 
 list_t* getPossiblePos(game_board* board, coords* current_pos){
     list_t *result = newList();
@@ -268,6 +302,7 @@ bool isMate(game_board* board, coords* kingpos){
 
 game_status getGameStatus(game_board *board)
 {
+    #if 0
     bool white_chess = isInChess(board, board->white_king_pos);
     bool white_mate = isMate(board, board->white_king_pos);
 
@@ -278,6 +313,7 @@ game_status getGameStatus(game_board *board)
     }
     if(white_mate)
         return WHITE_PAT;
+    #endif
 
     bool black_chess = isInChess(board, board->black_king_pos);
     bool black_mate = isMate(board, board->black_king_pos);
@@ -348,6 +384,8 @@ game_board* newBoard(){
 void initGameBoard(game_board *board){
     board->white_king_pos = Coords(4, 0);
     board->black_king_pos = Coords(4, 7);
+
+    board->to_play = WHITE;
 
     board->board[0][0] = newPiece(ROCK, WHITE);
     board->board[1][0] = newPiece(KNIGHT, WHITE);

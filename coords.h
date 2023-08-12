@@ -1,8 +1,11 @@
 #pragma once
 
+#include <stdbool.h>
+
 typedef struct{
-    int posx;
-    int posy;
+    unsigned int posx;
+    unsigned int posy;
 }coords;
 
 coords* Coords(int posx, int posy);
+bool areCoordsValid(coords* coords);

@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
 
     board->black_king_pos = Coords(2, 1);
     board->white_king_pos = Coords(7, 7);
+    board->to_play = WHITE;
 
     char current_pos[2], to_pos[2];
     int currentx, currenty, tox, toy;
@@ -62,6 +63,6 @@ int main(int argc, char **argv) {
         tox = to_pos[0] - 'A';
         toy = to_pos[1] - '1';
         
-        movePiece(board, Coords(currentx, currenty), Coords(tox, toy));
+        playerMovePiece(board, Coords(currentx, currenty), Coords(tox, toy));
     }
 }

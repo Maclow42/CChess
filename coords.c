@@ -7,3 +7,7 @@ coords* Coords(int posx, int posy){
     result->posy = posy;
     return result;
 }
+
+bool areCoordsValid(coords* coords){
+    return coords->posx < 8 && coords->posy < 8;
+}

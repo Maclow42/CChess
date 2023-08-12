@@ -27,7 +27,7 @@ typedef struct{
 
 game_board* newBoard();
 bool isPosAccessible(game_board* board, coords* current_pos, coords* dest_pos);
-bool movePiece(game_board* board, coords* current_pos, coords* dest_pos);
+bool playerMovePiece(game_board* board, coords* current_pos, coords* dest_pos);
 
 int isInChess(game_board* board, coords* kingpos);
 bool isMate(game_board* board, coords* kingpos);

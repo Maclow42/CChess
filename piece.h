@@ -7,7 +7,7 @@ typedef enum color {
     NONE_COLOR,
     BLACK,
     WHITE
-};
+}color_t;
 
 enum piece_type {
     NONE_PIECE,
