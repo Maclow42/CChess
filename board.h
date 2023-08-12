@@ -5,10 +5,27 @@
 #include <stdbool.h>
 #include <string.h>
 #include "piece.h"
+#include "coords.h"
 
-void newBoard(piece board[8][8]);
-bool isPosAccessible(piece board[8][8], int currentx, int currenty, int tox, int toy);
-bool movePiece(piece board[8][8], int currentx, int currenty, int tox, int toy);
-int isInChess(piece board[8][8], int kingposx, int kingposy);
-bool isMate(piece board[8][8], int kingposx, int kingposy);
-void printBoard(piece board[8][8]);
+typedef enum{
+    WHITE_CHESS,
+    WHITE_MATE,
+    WHITE_PAT,
+    BLACK_CHESS,
+    BLACK_MATE,
+    BLACK_PAT
+}game_status;
+
+typedef struct{
+    piece** board;
+    coords white_king;
+    coords black_king;
+    game_status status;
+}game_board;
+
+game_board* newBoard();
+bool isPosAccessible(game_board* board, coords* current_pos, coords* dest_pos);
+bool movePiece(game_board* board, coords* current_pos, coords* dest_pos);
+int isInChess(game_board* board, coords* kingpos);
+bool isMate(game_board* board, coords* kingpos);
+void printBoard(game_board* board);

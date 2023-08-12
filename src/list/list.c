@@ -1,4 +1,4 @@
-#include <stddef.h>
+#include <stdio.h>
 #include "list.h"
 
 /*############## NODE ##############*/
@@ -58,13 +58,13 @@ bool pushList(list_t *list, void *data){
     return true;
 }
 
-bool popList(list_t *list, int index){
-    if(index < 0 || index >= list->size)
+bool popList(list_t *list, unsigned int index){
+    if(index >= list->size)
         return false;
 
     node_t *current = list->sentinel;
 
-    for(int i = 0; i < index; i++)
+    for(unsigned int i = 0; i < index; i++)
         current = current->next;
 
     node_t *to_pop = current->next;
@@ -76,13 +76,13 @@ bool popList(list_t *list, int index){
     return true;
 }
 
-node_t* getIndexList(list_t *list, int index){
-    if(index < 0 || index >= list->size)
+void* getIndexList(list_t *list, unsigned int index){
+    if(index >= list->size)
         return NULL;
 
     node_t *current = list->sentinel;
 
-    for(int i = 0; i <= index; i++)
+    for(unsigned int i = 0; i <= index; i++)
         current = current->next;
 
     return current->data;
@@ -91,7 +91,7 @@ node_t* getIndexList(list_t *list, int index){
 void printList(list_t *list){
     node_t *current = list->sentinel->next;
     printf("s ->");
-    for(int i = 0; i < list->size; i++){
+    for(unsigned int i = 0; i < list->size; i++){
         printf(" %i ->", current->data);
         current = current->next;
     }

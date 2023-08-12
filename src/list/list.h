@@ -21,6 +21,6 @@ void freeNode(node_t *node);
 list_t* newList();
 void freeList(list_t *list);
 bool pushList(list_t *list, void *data);
-bool popList(list_t *list, int index);
-node_t* getIndexList(list_t *list, int index);
+bool popList(list_t *list, unsigned int index);
+void* getIndexList(list_t *list, unsigned int index);
 void printList(list_t *list);
