@@ -10,7 +10,6 @@ typedef enum color {
 }color_t;
 
 enum piece_type {
-    NONE_PIECE,
     PAWN,
     ROCK,
     KNIGHT,
@@ -22,7 +21,14 @@ enum piece_type {
 typedef struct{
     enum piece_type type;
     enum color color;
+    unsigned int value;
     bool first_move; // usefull for pawn to double
 }piece;
 
-piece newPiece(enum piece_type type, enum color color);
+piece* newPiece(enum piece_type type, enum color color, unsigned int value);
+piece* newPawn(enum color color);
+piece* newRock(enum color color);
+piece* newKnight(enum color color);
+piece* newBishop(enum color color);
+piece* newQueen(enum color color);
+piece* newKing(enum color color);

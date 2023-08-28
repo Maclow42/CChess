@@ -1,10 +1,8 @@
 #include <stdlib.h>
 #include "coords.h"
 
-coords* Coords(int posx, int posy){
-    coords* result = malloc(sizeof(coords));
-    result->posx = posx;
-    result->posy = posy;
+coords Coords(unsigned int posx, unsigned int posy){
+    coords result = {posx, posy};
     return result;
 }
 

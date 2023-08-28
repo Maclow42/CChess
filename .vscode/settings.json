@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "alpha_beta.h": "c",
+        "tree.h": "c",
+        "limits.h": "c"
+    }
+}

@@ -1,37 +1,42 @@
 #include "board.h"
-#include "src/list/list.h"
 
-bool isPosAccessible_Pawn(piece** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_Pawn(piece*** board, int currentx, int currenty, int tox, int toy){
     // forward move of one case
-    if(toy == currenty + (board[currentx][currenty].color == WHITE?1:-1)){
+    if(toy == currenty + (board[currentx][currenty]->color == WHITE?1:-1)){
         if(tox == currentx)
-            return board[tox][toy].type == NONE_PIECE;
+            return board[tox][toy] == NULL;
         // move diagonaly to catch a piece
         else if(abs(tox - currentx) == 1)
-            return board[tox][toy].type != NONE_PIECE;
+            return board[tox][toy] != NULL;
         
         return false;
     }
 
     // if it's the first move of the pawn, it can move of 2 cases
-    if(board[currentx][currenty].first_move){
-        if(toy == currenty + 2 && tox == currentx){
-                board[currentx][currenty].first_move = false;
-                return board[tox][toy].type == NONE_PIECE;
+    if(board[currentx][currenty]->first_move){
+        if(board[currentx][currenty]->color == WHITE){
+            if(toy == currenty + 2 && tox == currentx){
+                    return board[tox][toy] == NULL;
+            }
+        }
+        else{
+            if(toy == currenty - 2 && tox == currentx){
+                    return board[tox][toy] == NULL;
+            }
         }
     }
 
     return false;
 }
 
-bool isPosAccessible_Rock(piece** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_Rock(piece*** board, int currentx, int currenty, int tox, int toy){
     if(toy != currenty && tox != currentx)
         return false;
     
     // if the asked deplacement is vertical
     if(tox == currentx){
         for(int i = currenty+(toy>currenty?1:-1); i != toy; toy>currenty?i++:i--){
-            if(board[currentx][i].type != NONE_PIECE)
+            if(board[currentx][i] != NULL)
                 return false;
         }
     }
@@ -39,7 +44,7 @@ bool isPosAccessible_Rock(piece** board, int currentx, int currenty, int tox, in
     // else the deplacement is horizontal
     else{
         for(int i = currentx+(tox>currentx?1:-1); i != tox; tox>currentx?i++:i--){
-            if(board[i][currenty].type != NONE_PIECE)
+            if(board[i][currenty] != NULL)
                 return false;
         }
     }
@@ -47,7 +52,7 @@ bool isPosAccessible_Rock(piece** board, int currentx, int currenty, int tox, in
     return true;
 }
 
-bool isAccessible_Knight(piece** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_Knight(piece*** board, int currentx, int currenty, int tox, int toy){
     // Array listing all relative positions accessible by a knight
     int relative_accessible[8][2] = {  {-2, 1},
                                         {-1, 2},
@@ -67,7 +72,7 @@ bool isAccessible_Knight(piece** board, int currentx, int currenty, int tox, int
     return false;
 }
 
-bool isAccessible_Bishop(piece** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox, int toy){
     if(abs(currentx - tox) != abs(currenty - toy))
         return false;
 
@@ -77,98 +82,110 @@ bool isAccessible_Bishop(piece** board, int currentx, int currenty, int tox, int
     int vect_y = abs(toy - currenty)/(toy - currenty);
 
     for(int i = 1; i < dist; i++){
-        if(board[currentx + vect_x*i][currenty + vect_y*i].type != NONE_PIECE)
+        if(board[currentx + vect_x*i][currenty + vect_y*i] != NULL)
             return false;
     }
 
     return true;
 }
 
-bool isAccessible_King(piece** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, int toy){
     if(abs(currentx - tox) > 1 || abs(currenty - toy) > 1)
         return false;
 
     return true;    
 }
 
-bool isAccessible_Queen(piece** board, int currentx, int currenty, int tox, int toy){
-    return  isAccessible_Bishop(board, currentx, currenty, tox, toy) || \
+bool isPosAccessible_Queen(piece*** board, int currentx, int currenty, int tox, int toy){
+    return  isPosAccessible_Bishop(board, currentx, currenty, tox, toy) || \
             isPosAccessible_Rock(board, currentx, currenty, tox, toy);
 }
 
-bool isPosAccessible(game_board* board, coords* current_pos, coords* dest_pos){
+bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     /*
     Return true if piece at (currentx,currenty) in board can be moved to (tox, toy), otherwise return false
     Arguments:
     */
 
-   unsigned int currentx = current_pos->posx;
-   unsigned int currenty = current_pos->posy;
+    unsigned int currentx = current_pos.posx;
+    unsigned int currenty = current_pos.posy;
 
-   unsigned int tox = dest_pos->posx;
-   unsigned int toy = dest_pos->posy;
+    unsigned int tox = dest_pos.posx;
+    unsigned int toy = dest_pos.posy;
 
     // if coords are not valid then return false
-    if(!(areCoordsValid(current_pos) && areCoordsValid(dest_pos)))
+    if(!(areCoordsValid(&current_pos) && areCoordsValid(&dest_pos))){
+        //printf("(%i, %i) to (%i, %i) => invalid coords\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
         return false;
+    }
 
     // check if there actually is a piece at the indicated current position (if not return false)
-    if(board->board[currentx][currenty].type == NONE_PIECE)
+    if(board->board[currentx][currenty] == NULL){
+        //printf("(%i, %i) to (%i, %i) => NULL piece to move\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
         return false;
-    
+    }
+
     // check if the arrival position is not occupied by a piece of the same color
-    if(board->board[tox][toy].color == board->board[currentx][currenty].color)
+    if(board->board[tox][toy] != NULL && board->board[tox][toy]->color == board->board[currentx][currenty]->color){
+        //printf("(%i, %i) to (%i, %i) => trying to bit an allie\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
+        return false;
+    }
+
+    bool is_accessible = false;
+    switch (board->board[currentx][currenty]->type)
+    {
+        case PAWN:
+            is_accessible = isPosAccessible_Pawn(board->board, currentx, currenty, tox, toy);
+            break;
+        case ROCK:
+            is_accessible = isPosAccessible_Rock(board->board, currentx, currenty, tox, toy);
+            break;
+        case KNIGHT:
+            is_accessible = isPosAccessible_Knight(board->board, currentx, currenty, tox, toy);
+            break;
+        case BISHOP:
+            is_accessible = isPosAccessible_Bishop(board->board, currentx, currenty, tox, toy);
+            break;
+        case QUEEN:
+            is_accessible = isPosAccessible_Queen(board->board, currentx, currenty, tox, toy);
+            break;
+        case KING:
+            is_accessible = isPosAccessible_King(board->board, currentx, currenty, tox, toy);
+            break;
+        default:
+            is_accessible = false;
+            break;
+    }
+
+    if(!is_accessible)
         return false;
 
-    int (*functionTable[6])(piece** board, int currentx, int currenty, int tox, int toy) = { isPosAccessible_Pawn,
-                                                                                                isPosAccessible_Rock,
-                                                                                                isAccessible_Knight,
-                                                                                                isAccessible_Bishop,
-                                                                                                isAccessible_Queen,
-                                                                                                isAccessible_King};
-    return functionTable[board->board[currentx][currenty].type-1](board->board, currentx, currenty, tox, toy);
+    //try to move the piece and see if the king is in chess or mate
+    color_t current_color = board->board[currentx][currenty]->color;
+    piece* tmp = board->board[tox][toy];
+    movePiece(board, current_pos, dest_pos, true);
+    bool is_chess = isInChess(board, current_color == WHITE ? board->white_king_pos : board->black_king_pos);
+    movePiece(board, dest_pos, current_pos, true);
+    board->board[tox][toy] = tmp;
+
+    return !is_chess;
 }
 
-bool isPosAccessible_noPositionCheck(game_board* board, coords* current_pos, coords* dest_pos){
-    /*
-        Same as isPosAccessible but do not check if indicated positions are valids
-        (private function, used chen position already checked)
-    */
-
-   int currentx = current_pos->posx, currenty = current_pos->posy;
-   int tox = dest_pos->posx, toy = dest_pos->posy;
-
-    // check if there actually is a piece at the indicated current position (if not return false)
-    if(board->board[currentx][currenty].type == NONE_PIECE)
-        return false;
-    
-    // check if the arrival position is not occupied by a piece of the same color
-    if(board->board[tox][toy].color == board->board[currentx][currenty].color)
-        return false;
-
-    int (*functionTable[6])(piece** board, int currentx, int currenty, int tox, int toy) = { isPosAccessible_Pawn,
-                                                                                                    isPosAccessible_Rock,
-                                                                                                    isAccessible_Knight,
-                                                                                                    isAccessible_Bishop,
-                                                                                                    isAccessible_Queen,
-                                                                                                    isAccessible_King};
-    return functionTable[board->board[currentx][currenty].type-1](board->board, currentx, currenty, tox, toy);
-}
-
-bool movePiece(game_board* board, coords* current_pos, coords* dest_pos){
-    // if the piece do not belong to the good player return false
-    if(isPosAccessible(board, current_pos, dest_pos)){
-        int currentx = current_pos->posx, currenty = current_pos->posy;
-        int tox = dest_pos->posx, toy = dest_pos->posy;
+bool movePiece(game_board* board, coords current_pos, coords dest_pos, bool force){
+    if(1){
+        int currentx = current_pos.posx, currenty = current_pos.posy;
+        int tox = dest_pos.posx, toy = dest_pos.posy;
 
         board->board[tox][toy] = board->board[currentx][currenty];
-        board->board[currentx][currenty] = newPiece(NONE_PIECE, NONE_COLOR);
+        board->board[currentx][currenty] = NULL;
 
-        if(board->board[tox][toy].type == KING){
-            if(board->board[tox][toy].color == WHITE)
-                board->white_king_pos = dest_pos;
-            else
-                board->black_king_pos = dest_pos;
+        if(board->board[tox][toy] != NULL && board->board[tox][toy]->type == KING){
+            if(board->board[tox][toy]->color == WHITE){
+                board->white_king_pos = Coords(dest_pos.posx, dest_pos.posy);
+            }
+            else{
+                board->black_king_pos = Coords(dest_pos.posx, dest_pos.posy);
+            }
         }
 
         return true;
@@ -177,75 +194,77 @@ bool movePiece(game_board* board, coords* current_pos, coords* dest_pos){
     return false;
 }
 
-bool playerMovePiece(game_board* board, coords* current_pos, coords* dest_pos){
-    if(board->board[current_pos->posx][current_pos->posy].color != board->to_play)
+bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
+    if(board->board[current_pos.posx][current_pos.posy] == NULL){
+        printf("No piece at the given position.\n");
         return false;
-    
-    piece tmp = board->board[dest_pos->posx][dest_pos->posy];
-
-    if(!movePiece(board, current_pos, dest_pos))
-        return false;
-
-    game_status status = getGameStatus(board);
-    if(board->to_play == WHITE){
-        if(status == WHITE_CHESS || status == WHITE_MATE){
-            movePiece(board, dest_pos, current_pos);
-            board->board[dest_pos->posx][dest_pos->posy] = tmp;
-            return false;
-        }
     }
 
-    else{
-        if(status == BLACK_CHESS || status == BLACK_MATE){
-            movePiece(board, dest_pos, current_pos);
-            board->board[dest_pos->posx][dest_pos->posy] = tmp;
-            return false;
-        }
+    if(board->board[current_pos.posx][current_pos.posy]->color != board->to_play){
+        printf("It's not your turn to play.\n");
+        return false;
     }
 
+    if(!isPosAccessible(board, current_pos, dest_pos)){
+        printf("The piece can't be moved to the given position.\n");
+        return false;
+    }
+
+    movePiece(board, current_pos, dest_pos, true);
+    board->last_played = board->board[dest_pos.posx][dest_pos.posy];
+    board->board[dest_pos.posx][dest_pos.posy]->first_move = false;
     board->to_play = board->to_play == WHITE ? BLACK : WHITE;
 
     return true;
 }
 
 
-list_t* getPossiblePos(game_board* board, coords* current_pos){
-    list_t *result = newList();
+list_t* getPossiblePos(game_board* board, coords start_pos){
+    list_t *result_list = list_new();
 
     for(int i = 0; i < 8; i++)
         for(int j = 0; j < 8; j++){
-            coords *current_ij = Coords(i, j);
-            if(isPosAccessible(board, current_pos, current_ij)){
-                pushList(result, current_ij);
+            coords current_ij = Coords(i, j);
+            if(isPosAccessible(board, start_pos, current_ij)){
+                list_rpush(result_list, list_node_new(&current_ij));
             }
         }
     
-    return result;
+    return result_list;
 }
 
-int isInChess(game_board* board, coords* kingpos){
-    int kingposx = kingpos->posx, kingposy = kingpos->posy;
+int isInChess(game_board* board, coords kingpos){
+    int kingposx = kingpos.posx, kingposy = kingpos.posy;
 
-    if(board->board[kingposx][kingposy].type != KING){
+    if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
         fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
         return false;
     }
 
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            if(isPosAccessible_noPositionCheck(board, Coords(i, j), kingpos))
+            coords current_pos = {i, j};
+            bool is_accessible = isPosAccessible(board, current_pos, kingpos);
+            
+            if(is_accessible){
                 return true;
+            }
         }
     }
 
     return false;
 }
 
-bool isMate(game_board* board, coords* kingpos){
+bool isMate(game_board* board, coords kingpos){
     // check if the king can move out of chess
     // Array listing all relative positions accessible by the king
 
-    int kingposx = kingpos->posx, kingposy = kingpos->posy;
+    int kingposx = kingpos.posx, kingposy = kingpos.posy;
+
+    if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
+        fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
+        return false;
+    }
 
     int relative_accessible[8][2] = {   
                                         {0, 1},
@@ -262,47 +281,69 @@ bool isMate(game_board* board, coords* kingpos){
                                     };
 
     for(int i = 0; i < 8; i++){
-        coords* dest_pos = Coords(kingposx+relative_accessible[i][0], kingposy+relative_accessible[i][1]);
-        // if the king can move at the position
-        piece tmp = board->board[dest_pos->posx][dest_pos->posy];
-        if(movePiece(board, kingpos, dest_pos)){
-            bool isChess = isInChess(board, dest_pos);
-            movePiece(board, dest_pos, kingpos);
-            board->board[dest_pos->posx][dest_pos->posy] = tmp;
-            if(!isChess)
-                return false;
+        coords dest_pos = {kingposx+relative_accessible[i][0], kingposy+relative_accessible[i][1]};
+        if(areCoordsValid(&dest_pos)){
+            // if the king can move at the position
+            piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
+            if(isPosAccessible(board, kingpos, dest_pos)){
+                movePiece(board, kingpos, dest_pos, true);
+                bool isChess = isInChess(board, dest_pos);
+                movePiece(board, dest_pos, kingpos, true);
+                board->board[dest_pos.posx][dest_pos.posy] = tmp;
+                if(!isChess){
+                    return false;
+                }
+            }
         }
     }
 
     // check if a piece can eat or cover the ennemy
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            if(board->board[i][j].color == board->board[kingposx][kingposy].color && 10*i+j!= 10*kingposx+kingposy){
+
+            // if no piece there.... just try the next piece
+            if(board->board[i][j] == NULL)
+                continue;
+
+            // if the current piece belongs to the player (same color as the current king)
+            if(board->board[i][j]->color == board->board[kingposx][kingposy]->color){
+                // if it's the king himself... go to next
+                if(i == kingposx && j == kingposy)
+                    continue;
+
                 // get all accessible positions
-                list_t *access = getPossiblePos(board, Coords(i, j));
+                coords current_pos = Coords(i, j);
+                list_t *access_list = getPossiblePos(board, current_pos);
+
                 // move the current piece to all accessible positions
-                while(access->size!=0){
-                    coords* dest_pos = (coords *)getIndexList(access, 0);
-                    popList(access, 0);
-                    piece tmp = board->board[dest_pos->posx][dest_pos->posy];
-                    movePiece(board, Coords(i, j), dest_pos);
-                    bool is_chess = isInChess(board, kingpos);
-                    movePiece(board, dest_pos, Coords(i, j));
-                    board->board[dest_pos->posx][dest_pos->posy] = tmp;
-                    if(!is_chess)
-                        return false;
+                bool is_chess = true;
+                list_node_t *node;
+                list_iterator_t *it = list_iterator_new(access_list, LIST_HEAD);
+                while ((node = list_iterator_next(it)) && is_chess) {
+                    coords dest_pos = *(coords*)node->val;
+                    piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
+                    // try to move the piece
+                    if(isPosAccessible(board, current_pos, dest_pos)){
+                        movePiece(board, current_pos, dest_pos, true);
+                        is_chess = isInChess(board, kingpos);
+                        movePiece(board, dest_pos, current_pos, true);
+                        board->board[dest_pos.posx][dest_pos.posy] = tmp;
+                    }
+                    //else
+                        //printf("strange that (%i, %i) to (%i, %i) not possible\n", i, j, dest_pos.posx, dest_pos.posy);
                 }
+
+                list_iterator_destroy(it);
+                list_destroy(access_list);
             }
         }
     }
-
     return true;
 
 }
 
-game_status getGameStatus(game_board *board)
+game_status getGameStatus(game_board* board)
 {
-    #if 0
     bool white_chess = isInChess(board, board->white_king_pos);
     bool white_mate = isMate(board, board->white_king_pos);
 
@@ -312,8 +353,7 @@ game_status getGameStatus(game_board *board)
         return WHITE_CHESS;
     }
     if(white_mate)
-        return WHITE_PAT;
-    #endif
+        return PAT;
 
     bool black_chess = isInChess(board, board->black_king_pos);
     bool black_mate = isMate(board, board->black_king_pos);
@@ -324,7 +364,7 @@ game_status getGameStatus(game_board *board)
         return BLACK_CHESS;
     }
     if(black_mate)
-        return BLACK_PAT;
+        return PAT;
 
     return RAS;
 }
@@ -338,29 +378,32 @@ void printBoard(game_board* board){
             printf("   ├───┼───┼───┼───┼───┼───┼───┼───┤\n");
         printf(" %i %s", j+1, "│");
         for(int i = 0; i < 8; i++){
-            switch (board->board[i][j].type){
-                case PAWN:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♙ " : " ♟ ");
-                    break;
-                case ROCK:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♖ " : " ♜ ");
-                    break;
-                case KNIGHT:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♘ " : " ♞ ");
-                    break;
-                case BISHOP:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♗ " : " ♝ ");
-                    break;
-                case QUEEN:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♕ " : " ♛ ");
-                    break;
-                case KING:
-                    printf("%s", board->board[i][j].color == BLACK ? " ♔ " : " ♚ ");
-                    break;
-                default:
-                    printf("%s", "   ");
-                    break;
-            }
+            if(board->board[i][j] == NULL)
+                printf("%s", "   ");
+            else
+                switch (board->board[i][j]->type){
+                    case PAWN:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♙ " : " ♟ ");
+                        break;
+                    case ROCK:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♖ " : " ♜ ");
+                        break;
+                    case KNIGHT:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♘ " : " ♞ ");
+                        break;
+                    case BISHOP:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♗ " : " ♝ ");
+                        break;
+                    case QUEEN:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♕ " : " ♛ ");
+                        break;
+                    case KING:
+                        printf("%s", board->board[i][j]->color == BLACK ? " ♔ " : " ♚ ");
+                        break;
+                    default:
+                        printf("%s", "   ");
+                        break;
+                }
             if(i == 7)
                 printf("│ %i\n", j+1);
             else
@@ -374,12 +417,26 @@ void printBoard(game_board* board){
 game_board* newBoard(){
     game_board *board = malloc(sizeof(game_board));
 
-    board->board = (piece **)malloc(sizeof(piece *) * 8);
+    board->board = malloc(sizeof(piece **) * 8);
     for(int i = 0; i < 8; i++)
-        board->board[i] = (piece *)malloc(sizeof(piece) * 8);
+        board->board[i] = malloc(sizeof(piece*) * 8);
 
     return board;
 }
+
+void freeBoard(game_board *board) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if(board->board[i][j] != NULL)
+                free(board->board[i][j]);
+        }
+        free(board->board[i]); // Free row of the board
+    }
+    free(board->board); // Free the entire board
+
+    free(board); // Free the game_board structure itself
+}
+
 
 void initGameBoard(game_board *board){
     board->white_king_pos = Coords(4, 0);
@@ -387,25 +444,30 @@ void initGameBoard(game_board *board){
 
     board->to_play = WHITE;
 
-    board->board[0][0] = newPiece(ROCK, WHITE);
-    board->board[1][0] = newPiece(KNIGHT, WHITE);
-    board->board[2][0] = newPiece(BISHOP, WHITE);
-    board->board[3][0] = newPiece(QUEEN, WHITE);
-    board->board[4][0] = newPiece(KING, WHITE);
-    board->board[5][0] = newPiece(BISHOP, WHITE);
-    board->board[6][0] = newPiece(KNIGHT, WHITE);
-    board->board[7][0] = newPiece(ROCK, WHITE);
+    board->board[0][0] = newRock(WHITE);
+    board->board[1][0] = newKnight(WHITE);
+    board->board[2][0] = newBishop(WHITE);
+    board->board[3][0] = newQueen(WHITE);
+    board->board[4][0] = newKing(WHITE);
+    board->board[5][0] = newBishop(WHITE);
+    board->board[6][0] = newKnight(WHITE);
+    board->board[7][0] = newRock(WHITE);
     for(int i = 0; i < 8; i++)
-        board->board[i][1] = newPiece(PAWN, WHITE);
+        board->board[i][1] = newPawn(WHITE);
+
+    for(int j = 2; j < 6; j++){
+        for(int i = 0; i < 8; i++)
+            board->board[i][j] = NULL;
+    }
 
     for(int i = 0; i < 8; i++)
-        board->board[i][6] = newPiece(PAWN, BLACK);
-    board->board[0][7] = newPiece(ROCK, BLACK);
-    board->board[1][7] = newPiece(KNIGHT, BLACK);
-    board->board[2][7] = newPiece(BISHOP, BLACK);
-    board->board[3][7] = newPiece(QUEEN, BLACK);
-    board->board[4][7] = newPiece(KING, BLACK);
-    board->board[5][7] = newPiece(BISHOP, BLACK);
-    board->board[6][7] = newPiece(KNIGHT, BLACK);
-    board->board[7][7] = newPiece(ROCK, BLACK);
+        board->board[i][6] = newPawn(BLACK);
+    board->board[0][7] = newRock(BLACK);
+    board->board[1][7] = newKnight(BLACK);
+    board->board[2][7] = newBishop(BLACK);
+    board->board[3][7] = newQueen(BLACK);
+    board->board[4][7] = newKing(BLACK);
+    board->board[5][7] = newBishop(BLACK);
+    board->board[6][7] = newKnight(BLACK);
+    board->board[7][7] = newRock(BLACK);
 }

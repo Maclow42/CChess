@@ -1,99 +1,215 @@
-#include <stdio.h>
+
+//
+// list.c
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
 #include "list.h"
 
-/*############## NODE ##############*/
+/*
+ * Allocate a new list_t. NULL on failure.
+ */
 
-node_t* newNode(void *data){
-    node_t *result = malloc(sizeof(node_t));
-    result->data = data;
-    result->next = NULL;
-
-    return result;
+list_t *
+list_new(void) {
+  list_t *self;
+  if (!(self = LIST_MALLOC(sizeof(list_t))))
+    return NULL;
+  self->head = NULL;
+  self->tail = NULL;
+  self->free = NULL;
+  self->match = NULL;
+  self->len = 0;
+  return self;
 }
 
-void freeNode(node_t *node){
-    free(node);
+/*
+ * Free the list.
+ * @self: Pointer to the list 
+ */
+
+void
+list_destroy(list_t *self) {
+  unsigned int len = self->len;
+  list_node_t *next;
+  list_node_t *curr = self->head;
+
+  while (len--) {
+    next = curr->next;
+    if (self->free) self->free(curr->val);
+    LIST_FREE(curr);
+    curr = next;
+  }
+
+  LIST_FREE(self);
 }
 
-/*############## List ##############*/
+/*
+ * Append the given node to the list
+ * and return the node, NULL on failure.
+ * @self: Pointer to the list for popping node
+ * @node: the node to push
+ */
 
-list_t* newList(){
-    list_t *result = malloc(sizeof(list_t));
+list_node_t *
+list_rpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
 
-    if(result == NULL)
-        return NULL;
+  if (self->len) {
+    node->prev = self->tail;
+    node->next = NULL;
+    self->tail->next = node;
+    self->tail = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
 
-    result->size = 0;
-    result->sentinel = newNode(NULL);
-    result->sentinel->next = NULL;
-
-    return result;
+  ++self->len;
+  return node;
 }
 
-void freeList(list_t *list){
-    node_t *current = list->sentinel;
+/*
+ * Return / detach the last node in the list, or NULL.
+ * @self: Pointer to the list for popping node
+ */
 
-    while(current!=NULL){
-        node_t *tmp = current;
-        current = current->next;
-        freeNode(tmp);
+list_node_t *
+list_rpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->tail;
+
+  if (--self->len) {
+    (self->tail = node->prev)->next = NULL;
+  } else {
+    self->tail = self->head = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Return / detach the first node in the list, or NULL.
+ * @self: Pointer to the list for popping node
+ */
+
+list_node_t *
+list_lpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->head;
+
+  if (--self->len) {
+    (self->head = node->next)->prev = NULL;
+  } else {
+    self->head = self->tail = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Prepend the given node to the list
+ * and return the node, NULL on failure.
+ * @self: Pointer to the list for pushing node
+ * @node: the node to push
+ */
+
+list_node_t *
+list_lpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
+
+  if (self->len) {
+    node->next = self->head;
+    node->prev = NULL;
+    self->head->prev = node;
+    self->head = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return node;
+}
+
+/*
+ * Return the node associated to val or NULL.
+ * @self: Pointer to the list for finding given value
+ * @val: Value to find 
+ */
+
+list_node_t *
+list_find(list_t *self, void *val) {
+  list_iterator_t *it = list_iterator_new(self, LIST_HEAD);
+  list_node_t *node;
+
+  while ((node = list_iterator_next(it))) {
+    if (self->match) {
+      if (self->match(val, node->val)) {
+        list_iterator_destroy(it);
+        return node;
+      }
+    } else {
+      if (val == node->val) {
+        list_iterator_destroy(it);
+        return node;
+      }
     }
+  }
 
-    free(list);
+  list_iterator_destroy(it);
+  return NULL;
 }
 
-bool pushList(list_t *list, void *data){
-    node_t *to_push = newNode(data);
+/*
+ * Return the node at the given index or NULL.
+ * @self: Pointer to the list for finding given index 
+ * @index: the index of node in the list
+ */
 
-    if(to_push == NULL)
-        return false;
+list_node_t *
+list_at(list_t *self, int index) {
+  list_direction_t direction = LIST_HEAD;
 
-    node_t *head = list->sentinel->next;
+  if (index < 0) {
+    direction = LIST_TAIL;
+    index = ~index;
+  }
 
-    list->sentinel->next = to_push;
-    to_push->next = head;
+  if ((unsigned)index < self->len) {
+    list_iterator_t *it = list_iterator_new(self, direction);
+    list_node_t *node = list_iterator_next(it);
+    while (index--) node = list_iterator_next(it);
+    list_iterator_destroy(it);
+    return node;
+  }
 
-    list->size++;
-
-    return true;
+  return NULL;
 }
 
-bool popList(list_t *list, unsigned int index){
-    if(index >= list->size)
-        return false;
+/*
+ * Remove the given node from the list, freeing it and it's value.
+ * @self: Pointer to the list to delete a node 
+ * @node: Pointer the node to be deleted
+ */
 
-    node_t *current = list->sentinel;
+void
+list_remove(list_t *self, list_node_t *node) {
+  node->prev
+    ? (node->prev->next = node->next)
+    : (self->head = node->next);
 
-    for(unsigned int i = 0; i < index; i++)
-        current = current->next;
+  node->next
+    ? (node->next->prev = node->prev)
+    : (self->tail = node->prev);
 
-    node_t *to_pop = current->next;
-    current->next = to_pop->next;
+  if (self->free) self->free(node->val);
 
-    freeNode(to_pop);
-    list->size--;
-
-    return true;
-}
-
-void* getIndexList(list_t *list, unsigned int index){
-    if(index >= list->size)
-        return NULL;
-
-    node_t *current = list->sentinel;
-
-    for(unsigned int i = 0; i <= index; i++)
-        current = current->next;
-
-    return current->data;
-}
-
-void printList(list_t *list){
-    node_t *current = list->sentinel->next;
-    printf("s ->");
-    for(unsigned int i = 0; i < list->size; i++){
-        printf(" %i ->", current->data);
-        current = current->next;
-    }
-    printf("\n");
+  LIST_FREE(node);
+  --self->len;
 }

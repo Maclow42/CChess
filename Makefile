@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -O3
 LDFLAGS =
 LDLIBS =
 
-SRC = main.c piece.c board.c coords.c ./src/list/list.c
+SRC = main.c piece.c board.c coords.c alpha_beta.c ./src/list/list.c ./src/list/list_node.c ./src/list/list_iterator.c ./src/tree/tree.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 

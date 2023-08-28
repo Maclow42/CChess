@@ -7,5 +7,5 @@ typedef struct{
     unsigned int posy;
 }coords;
 
-coords* Coords(int posx, int posy);
+coords Coords(unsigned int posx, unsigned int posy);
 bool areCoordsValid(coords* coords);

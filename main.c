@@ -1,68 +1,79 @@
 #include <stdio.h>
 #include "board.h"
+#include "alpha_beta.h"
 
-void play(){
-    piece board[8][8];
-    newBoard(board);
-
-    char current_pos[2], to_pos[2];
-    int currentx, currenty, tox, toy;
-
-    while(1){
-        printf("\e[1;1H\e[2J");
-        printBoard(board);
-
-        printf("Enter a move : ");
-        scanf("%s %s", &current_pos, &to_pos);
-
-        currentx = current_pos[0] - 'A';
-        currenty = current_pos[1] -'1';
-        tox = to_pos[0] - 'A';
-        toy = to_pos[1] - '1';
+int main() {
+    game_board *board = newBoard();
         
-        movePiece(board, Coords(currentx, currenty), Coords(tox, toy));
-    }
-}
+    board->board[0][0] = newRock(WHITE);
+    board->board[0][2] = newRock(WHITE);
+    board->board[1][5] = newRock(WHITE);
+    board->board[4][5] = newRock(WHITE);
+    board->board[6][6] = newKing(WHITE);
 
-int main(int argc, char **argv) {
-    game_board *board = malloc(sizeof(game_board));
-
-    board->board = (piece **)malloc(sizeof(piece *) * 8);
-    for(int i = 0; i < 8; i++)
-        board->board[i] = (piece *)malloc(sizeof(piece) * 8);
-
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++)
-            board->board[i][j] = newPiece(NONE_PIECE, NONE_COLOR);
-    }
-        
-    board->board[0][0] = newPiece(ROCK, WHITE);
-    board->board[0][2] = newPiece(ROCK, WHITE);
-    board->board[1][5] = newPiece(ROCK, WHITE);
-    board->board[4][5] = newPiece(ROCK, WHITE);
-    board->board[2][1] = newPiece(KING, BLACK);
-    board->board[7][7] = newPiece(KING, WHITE);
+    board->board[0][1] = newRock(BLACK);
+    board->board[2][1] = newKing(BLACK);
 
     board->black_king_pos = Coords(2, 1);
-    board->white_king_pos = Coords(7, 7);
+    board->white_king_pos = Coords(6, 6);
     board->to_play = WHITE;
 
-    char current_pos[2], to_pos[2];
-    int currentx, currenty, tox, toy;
+
+    char* getted_current_pos = malloc(sizeof(char)*2);
+    char* getted_to_pos = malloc(sizeof(char)*2);
+
     while(1){
         printf("\e[1;1H\e[2J");
         printBoard(board);
 
         printf("Game status : %i\n", (int) getGameStatus(board));
+        printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        printf("Enter a move : ");
-        scanf("%s %s", &current_pos, &to_pos);
+        if(board->to_play == WHITE){
+            printf("Enter a move : ");
+            int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
+            if(scan_result == 1)
+                return false;
 
-        currentx = current_pos[0] - 'A';
-        currenty = current_pos[1] -'1';
-        tox = to_pos[0] - 'A';
-        toy = to_pos[1] - '1';
-        
-        playerMovePiece(board, Coords(currentx, currenty), Coords(tox, toy));
+            coords current_pos = {getted_current_pos[0] - 'A', getted_current_pos[1] -'1'};
+            coords to_pos = {getted_to_pos[0] - 'A', getted_to_pos[1] - '1'};
+            
+            if(playerMovePiece(board, current_pos, to_pos)){
+                game_status status = getGameStatus(board);
+                if(status == WHITE_MATE || status == BLACK_MATE){
+                    printf("\e[1;1H\e[2J");
+                    printBoard(board);
+                    printf("Checkmate !\n");
+                    break;
+                }
+                else if(status == PAT){
+                    printf("\e[1;1H\e[2J");
+                    printBoard(board);
+                    printf("Pat !\n");
+                    break;
+                }
+            }
+        }
+        else{
+            movement_coords* best_move = getBestMove(board, 3);
+            coords start_pos = best_move->start_pos;
+            coords end_pos = best_move->end_pos;
+            playerMovePiece(board, start_pos, end_pos);
+            
+            game_status status = getGameStatus(board);
+                if(status == WHITE_MATE || status == BLACK_MATE){
+                    printf("\e[1;1H\e[2J");
+                    printBoard(board);
+                    printf("Checkmate !\n");
+                    break;
+                }
+                else if(status == PAT){
+                    printf("\e[1;1H\e[2J");
+                    printBoard(board);
+                    printf("Pat !\n");
+                    break;
+                }
+        }
     }
+    freeBoard(board);
 }
