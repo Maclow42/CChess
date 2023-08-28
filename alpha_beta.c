@@ -116,7 +116,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
 
             // do the indicated movement
-            movePiece(board, start_pos, end_pos, false);
+            movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
@@ -135,7 +135,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             }
 
             // undo the indicated movement
-            movePiece(board, end_pos, start_pos, true);
+            movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
 
             // alpha beta pruning
@@ -159,7 +159,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
 
             // do the indicated movement
-            movePiece(board, start_pos, end_pos, false);
+            movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
@@ -178,7 +178,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             }
 
             // undo the indicated movement
-            movePiece(board, end_pos, start_pos, true);
+            movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
 
             // alpha beta pruning

@@ -163,35 +163,29 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     //try to move the piece and see if the king is in chess or mate
     color_t current_color = board->board[currentx][currenty]->color;
     piece* tmp = board->board[tox][toy];
-    movePiece(board, current_pos, dest_pos, true);
+    movePiece(board, current_pos, dest_pos);
     bool is_chess = isInChess(board, current_color == WHITE ? board->white_king_pos : board->black_king_pos);
-    movePiece(board, dest_pos, current_pos, true);
+    movePiece(board, dest_pos, current_pos);
     board->board[tox][toy] = tmp;
 
     return !is_chess;
 }
 
-bool movePiece(game_board* board, coords current_pos, coords dest_pos, bool force){
-    if(1){
-        int currentx = current_pos.posx, currenty = current_pos.posy;
-        int tox = dest_pos.posx, toy = dest_pos.posy;
+void movePiece(game_board* board, coords current_pos, coords dest_pos){
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = dest_pos.posx, toy = dest_pos.posy;
 
-        board->board[tox][toy] = board->board[currentx][currenty];
-        board->board[currentx][currenty] = NULL;
+    board->board[tox][toy] = board->board[currentx][currenty];
+    board->board[currentx][currenty] = NULL;
 
-        if(board->board[tox][toy] != NULL && board->board[tox][toy]->type == KING){
-            if(board->board[tox][toy]->color == WHITE){
-                board->white_king_pos = Coords(dest_pos.posx, dest_pos.posy);
-            }
-            else{
-                board->black_king_pos = Coords(dest_pos.posx, dest_pos.posy);
-            }
+    if(board->board[tox][toy] != NULL && board->board[tox][toy]->type == KING){
+        if(board->board[tox][toy]->color == WHITE){
+            board->white_king_pos = Coords(dest_pos.posx, dest_pos.posy);
         }
-
-        return true;
+        else{
+            board->black_king_pos = Coords(dest_pos.posx, dest_pos.posy);
+        }
     }
-
-    return false;
 }
 
 bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
@@ -210,7 +204,7 @@ bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
         return false;
     }
 
-    movePiece(board, current_pos, dest_pos, true);
+    movePiece(board, current_pos, dest_pos);
     board->last_played = board->board[dest_pos.posx][dest_pos.posy];
     board->board[dest_pos.posx][dest_pos.posy]->first_move = false;
     board->to_play = board->to_play == WHITE ? BLACK : WHITE;
@@ -286,9 +280,9 @@ bool isMate(game_board* board, coords kingpos){
             // if the king can move at the position
             piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
             if(isPosAccessible(board, kingpos, dest_pos)){
-                movePiece(board, kingpos, dest_pos, true);
+                movePiece(board, kingpos, dest_pos);
                 bool isChess = isInChess(board, dest_pos);
-                movePiece(board, dest_pos, kingpos, true);
+                movePiece(board, dest_pos, kingpos);
                 board->board[dest_pos.posx][dest_pos.posy] = tmp;
                 if(!isChess){
                     return false;
@@ -298,6 +292,9 @@ bool isMate(game_board* board, coords kingpos){
     }
 
     // check if a piece can eat or cover the ennemy
+    puts("");
+    puts("############ MATE CHECK ############");
+    puts("check if a piece can eat or cover the ennemy");
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
 
@@ -307,6 +304,8 @@ bool isMate(game_board* board, coords kingpos){
 
             // if the current piece belongs to the player (same color as the current king)
             if(board->board[i][j]->color == board->board[kingposx][kingposy]->color){
+                puts("");
+                printf("checking (%i, %i)\n", i, j);
                 // if it's the king himself... go to next
                 if(i == kingposx && j == kingposy)
                     continue;
@@ -324,13 +323,14 @@ bool isMate(game_board* board, coords kingpos){
                     piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
                     // try to move the piece
                     if(isPosAccessible(board, current_pos, dest_pos)){
-                        movePiece(board, current_pos, dest_pos, true);
+                        printf("try move (%i, %i) to (%i, %i)\n", i, j, dest_pos.posx, dest_pos.posy);
+                        movePiece(board, current_pos, dest_pos);
                         is_chess = isInChess(board, kingpos);
-                        movePiece(board, dest_pos, current_pos, true);
+                        movePiece(board, dest_pos, current_pos);
                         board->board[dest_pos.posx][dest_pos.posy] = tmp;
                     }
-                    //else
-                        //printf("strange that (%i, %i) to (%i, %i) not possible\n", i, j, dest_pos.posx, dest_pos.posy);
+                    else
+                        printf("strange that (%i, %i) to (%i, %i) not possible\n", i, j, dest_pos.posx, dest_pos.posy);
                 }
 
                 list_iterator_destroy(it);
