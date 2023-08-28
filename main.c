@@ -55,7 +55,7 @@ int main() {
             }
         }
         else{
-            movement_coords* best_move = getBestMove(board, 3);
+            movement_coords* best_move = getBestMove(board, 5);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
             playerMovePiece(board, start_pos, end_pos);
