@@ -175,7 +175,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, BLACK, new_child, depth-1, alpha, beta);
-            ((movement_coords*)new_child->data)->score = child_score + isAPieceTaken*10;
+            ((movement_coords*)new_child->data)->score = child_score - isAPieceTaken*10;
             
             min_eval = min(child_score, min_eval);
 
