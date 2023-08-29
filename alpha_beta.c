@@ -3,6 +3,7 @@
 #include <time.h>
 #include "alpha_beta.h"
 
+int TAKEPIECE_BONUS = 10;
 int CHESS_MALUS = 50;
 int MATE_MALUS = 10e6;
 
@@ -125,8 +126,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             //save the piece at end_pos to be able to restore it later
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
 
-            // do the indicated movement
-            movePiece(board, start_pos, end_pos);
+            // do the indicated movement and check if a piece is taken
+            bool isAPieceTaken = movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
@@ -135,7 +136,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, BLACK, new_child, depth-1, alpha, beta);
-            ((movement_coords*)new_child->data)->score = child_score;
+            ((movement_coords*)new_child->data)->score = child_score + isAPieceTaken*10;
             
             max_eval = max(child_score, max_eval);
 
@@ -164,8 +165,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             //save the piece at end_pos to be able to restore it later
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
 
-            // do the indicated movement
-            movePiece(board, start_pos, end_pos);
+            // do the indicated movement and check if a piece is taken
+            bool isAPieceTaken = movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
@@ -173,8 +174,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             addChild(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
-            int child_score = minmax(board, WHITE, new_child, depth-1, alpha, beta);
-            ((movement_coords*)new_child->data)->score = child_score;
+            int child_score = minmax(board, BLACK, new_child, depth-1, alpha, beta);
+            ((movement_coords*)new_child->data)->score = child_score + isAPieceTaken*10;
             
             min_eval = min(child_score, min_eval);
 
