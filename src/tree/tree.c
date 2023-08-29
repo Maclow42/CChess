@@ -21,3 +21,18 @@ void freeTree(tree_t *tree){
     free(tree->data);
     free(tree);
 }
+
+void addChild(tree_t* tree, tree_t* child){
+    child->next = tree->child;
+    tree->child = child;
+}
+
+int getNumberOfChild(tree_t* tree){
+    int nb_child = 0;
+    tree_t* current = tree->child;
+    while(current != NULL){
+        nb_child++;
+        current = current->next;
+    }
+    return nb_child;
+}
