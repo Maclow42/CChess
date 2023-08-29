@@ -1,8 +1,13 @@
 #include <limits.h>
+#include <stdlib.h>
+#include <time.h>
 #include "alpha_beta.h"
 
-int CHESS_MALUS = 10e6;
-int MATE_MALUS = INT_MAX;
+int CHESS_MALUS = 10e3;
+int MATE_MALUS = 10e6;
+
+#define min(a, b) ((a) <= (b) ? (a) : (b))
+#define max(a, b) ((a) <= (b) ? (b) : (a))
 
 movement_coords* moveCoords(coords start, coords end, int score){
     movement_coords* result = malloc(sizeof(movement_coords));
@@ -82,6 +87,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
     // get all move allowed for the current player
     list_t* possible_move = getAllPossibleMove(board, color_to_play);
+
+    #if 0
     puts("");
     printf("possible move at depth %i:\n", depth);
     list_node_t *node;
@@ -92,16 +99,16 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
     }
     list_iterator_destroy(it);
     puts("");
+    #endif
 
     // if no move is possible, return the current board evaluation
     if(possible_move->len == 0){
         list_destroy(possible_move);
-        ((movement_coords*)resultTree->data)->score = evaluateBoard(board);
+        ((movement_coords*)resultTree->data)->score = evaluateBoard(board) * depth;
         return ((movement_coords*)resultTree->data)->score;
     }
 
     int best_score = 0;
-    movement_coords* best_move = NULL;
     
     if(color_to_play == WHITE){
         int max_eval = INT_MIN;
@@ -121,27 +128,23 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
             new_child->data = node->val;
-            new_child->next = resultTree->child;
-            resultTree->child = new_child;
+            addChild(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, BLACK, new_child, depth-1, alpha, beta);
-            printf("move %c%c -> %c%c has score %i\n", start_pos.posx + 'A', start_pos.posy + '1', end_pos.posx + 'A', end_pos.posy + '1', child_score);
-            ((movement_coords*)new_child->data)->score = evaluateBoard(board);
+            ((movement_coords*)new_child->data)->score = child_score;
             
-            if(child_score > max_eval){
-                max_eval = child_score;
-                best_move = node->val;
-            }
+            max_eval = max(child_score, max_eval);
 
             // undo the indicated movement
             movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
 
             // alpha beta pruning
-            alpha = alpha > max_eval ? alpha : max_eval;
-            if(beta <= alpha)
+            alpha = max(alpha, max_eval);
+            if(beta < alpha){
                 break;
+            }
         }
         list_iterator_destroy(it);
         best_score = max_eval;
@@ -164,26 +167,21 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
             new_child->data = node->val;
-            new_child->next = resultTree->child;
-            resultTree->child = new_child;
+            addChild(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, WHITE, new_child, depth-1, alpha, beta);
-            printf("move %c%c -> %c%c has score %i\n", start_pos.posx + 'A', start_pos.posy + '1', end_pos.posx + 'A', end_pos.posy + '1', child_score);
-            ((movement_coords*)new_child->data)->score = evaluateBoard(board);
+            ((movement_coords*)new_child->data)->score = child_score;
             
-            if(child_score < min_eval){
-                min_eval = child_score;
-                best_move = node->val;
-            }
+            min_eval = min(child_score, min_eval);
 
             // undo the indicated movement
             movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
 
             // alpha beta pruning
-            beta = beta < min_eval ? beta : min_eval;
-            if(beta <= alpha)
+            beta = min(beta, min_eval);
+            if(beta < alpha)
                 break;
         }
         list_iterator_destroy(it);
@@ -192,8 +190,6 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
     // free the list of possible move (it do not free the movement_coords* inside)
     list_destroy(possible_move);
-
-    printf("depth %i : best move is %c%c -> %c%c with score %i\n", depth, best_move->start_pos.posx + 'A', best_move->start_pos.posy + '1', best_move->end_pos.posx + 'A', best_move->end_pos.posy + '1', best_score);
 
     return best_score;
 }
@@ -204,18 +200,28 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
 
     int best_score = minmax(board, board->to_play, eval_tree, evaluation_depth, INT_MIN, INT_MAX);
 
-    //get the best move from the tree
-    movement_coords* best_move;
-    tree_t* current_node = eval_tree->child;
-    while(current_node != NULL){
-        if(((movement_coords*)current_node->data)->score == best_score){
-            best_move = current_node->data;
-            break;
-        }
-        current_node = current_node->next;
+
+    //get a random move among all those with the best score
+
+    //get all move with the best score
+    list_t* best_moves = list_new();
+
+    //get best moves from the tree
+    tree_t* current_child = eval_tree->child;
+    while(current_child != NULL){
+        //printf("(%c%c -> %c%c) score : %i // best score : %i\n", ((movement_coords*)current_child->data)->start_pos.posx + 'A', ((movement_coords*)current_child->data)->start_pos.posy + '1', ((movement_coords*)current_child->data)->end_pos.posx + 'A', ((movement_coords*)current_child->data)->end_pos.posy + '1', ((movement_coords*)current_child->data)->score, best_score);
+        if(((movement_coords*)current_child->data)->score == best_score)
+            list_rpush(best_moves, list_node_new(current_child->data));
+        current_child = current_child->next;
     }
 
-    printf("final best move is %c%c -> %c%c\n", best_move->start_pos.posx + 'A', best_move->start_pos.posy + '1', best_move->end_pos.posx + 'A', best_move->end_pos.posy + '1');
+    //get a random move among all those with the best score
+    srand(time(NULL));
+    int random_index = rand() % best_moves->len;
+    movement_coords* best_move_pointer = list_at(best_moves, random_index)->val;
+    movement_coords* best_move = moveCoords(best_move_pointer->start_pos, best_move_pointer->end_pos, best_move_pointer->score);
+
+    list_destroy(best_moves);
 
     return best_move;
 }
