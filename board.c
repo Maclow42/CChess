@@ -61,7 +61,7 @@ bool isPosAccessible_Knight(piece*** board, int currentx, int currenty, int tox,
                                         {2, -1},
                                         {1, -2},
                                         {-1, -2},
-                                        {-2, -2}
+                                        {-2, -1}
                                      };
     // check if one possibility corresponds to the asked deplacement
     for(int i = 0; i < 8; i++){
