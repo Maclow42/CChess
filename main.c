@@ -29,7 +29,7 @@ int main() {
         printf("Game status : %i\n", (int) getGameStatus(board));
         printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        if(board->to_play == WHITE){
+        if(board->to_play == BLACK){
             printf("Enter a move : ");
             int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
             if(scan_result == 1)

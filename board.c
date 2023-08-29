@@ -233,7 +233,7 @@ int isInChess(game_board* board, coords kingpos){
     int kingposx = kingpos.posx, kingposy = kingpos.posy;
 
     if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
-        fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
+        //fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
         return false;
     }
 
@@ -259,7 +259,7 @@ bool isMate(game_board* board, coords kingpos){
     int kingposx = kingpos.posx, kingposy = kingpos.posy;
 
     if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
-        fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
+        //fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
         return false;
     }
 
@@ -295,9 +295,6 @@ bool isMate(game_board* board, coords kingpos){
     }
 
     // check if a piece can eat or cover the ennemy
-    puts("");
-    puts("############ MATE CHECK ############");
-    puts("check if a piece can eat or cover the ennemy");
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
 
