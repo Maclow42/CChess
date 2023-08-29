@@ -215,6 +215,7 @@ bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
 
 list_t* getPossiblePos(game_board* board, coords start_pos){
     list_t *result_list = list_new();
+    result_list->free = free;
 
     for(int i = 0; i < 8; i++)
         for(int j = 0; j < 8; j++){

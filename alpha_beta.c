@@ -3,8 +3,10 @@
 #include <time.h>
 #include "alpha_beta.h"
 
-int CHESS_MALUS = 10e3;
+int CHESS_MALUS = 50;
 int MATE_MALUS = 10e6;
+
+#define getProb() ((float) (rand() % 100) / 100)
 
 #define min(a, b) ((a) <= (b) ? (a) : (b))
 #define max(a, b) ((a) <= (b) ? (b) : (a))
@@ -19,6 +21,7 @@ movement_coords* moveCoords(coords start, coords end, int score){
 
 list_t* getAllPossibleMove(game_board* board, enum color color){
     list_t* possible_move = list_new();
+    possible_move->free = free;
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
             // if the piece is of the right color
@@ -71,7 +74,7 @@ int evaluateBoard(game_board* board){
         for(int j = 0; j < 8; j++){
             piece* current = board->board[i][j];
             if(current != NULL)
-                score += (current->color==WHITE?1:-1) * current->value;
+                score += (current->color==WHITE?1:-1) * current->value * 8 / ( 1 + min(abs(3-i), abs(4-i)) + (min(abs(3-j), abs(4-j))));
         }
     }
 
@@ -127,7 +130,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
-            new_child->data = node->val;
+            new_child->data = moveCoords(start_pos, end_pos, 0);
             addChild(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
@@ -166,7 +169,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 
             //create the node to insert as a son to resultTree using move_eval
             tree_t* new_child = newTree();
-            new_child->data = node->val;
+            new_child->data = moveCoords(start_pos, end_pos, 0);
             addChild(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
@@ -188,13 +191,15 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
         best_score = min_eval;
     }
 
-    // free the list of possible move (it do not free the movement_coords* inside)
+    // free the list of possible move
     list_destroy(possible_move);
 
     return best_score;
 }
 
 movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
+    srand(time(NULL));
+
     tree_t* eval_tree = newTree();
     eval_tree->data = malloc(sizeof(movement_coords));
 
@@ -209,19 +214,18 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     //get best moves from the tree
     tree_t* current_child = eval_tree->child;
     while(current_child != NULL){
-        //printf("(%c%c -> %c%c) score : %i // best score : %i\n", ((movement_coords*)current_child->data)->start_pos.posx + 'A', ((movement_coords*)current_child->data)->start_pos.posy + '1', ((movement_coords*)current_child->data)->end_pos.posx + 'A', ((movement_coords*)current_child->data)->end_pos.posy + '1', ((movement_coords*)current_child->data)->score, best_score);
-        if(((movement_coords*)current_child->data)->score == best_score)
+        if(((movement_coords*)current_child->data)->score == best_score || getProb() > 0.8)
             list_rpush(best_moves, list_node_new(current_child->data));
         current_child = current_child->next;
     }
 
     //get a random move among all those with the best score
-    srand(time(NULL));
     int random_index = rand() % best_moves->len;
     movement_coords* best_move_pointer = list_at(best_moves, random_index)->val;
     movement_coords* best_move = moveCoords(best_move_pointer->start_pos, best_move_pointer->end_pos, best_move_pointer->score);
 
-    list_destroy(best_moves);
+    list_destroy(best_moves); // no need to free node->val because all will be freed by freeTree()
+    freeTree(eval_tree);
 
     return best_move;
 }

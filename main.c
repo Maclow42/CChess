@@ -4,19 +4,7 @@
 
 int main() {
     game_board *board = newBoard();
-        
-    board->board[0][0] = newRock(WHITE);
-    board->board[0][2] = newRock(WHITE);
-    board->board[1][5] = newRock(WHITE);
-    board->board[4][5] = newRock(WHITE);
-    board->board[6][6] = newKing(WHITE);
-
-    board->board[0][1] = newRock(BLACK);
-    board->board[2][1] = newKing(BLACK);
-
-    board->black_king_pos = Coords(2, 1);
-    board->white_king_pos = Coords(6, 6);
-    board->to_play = WHITE;
+    initGameBoard(board);
 
 
     char* getted_current_pos = malloc(sizeof(char)*2);
@@ -26,10 +14,9 @@ int main() {
         printf("\e[1;1H\e[2J");
         printBoard(board);
 
-        printf("Game status : %i\n", (int) getGameStatus(board));
         printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        if(board->to_play == BLACK){
+        if(board->to_play == WHITE){
             printf("Enter a move : ");
             int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
             if(scan_result == 1)
@@ -55,7 +42,7 @@ int main() {
             }
         }
         else{
-            movement_coords* best_move = getBestMove(board, 5);
+            movement_coords* best_move = getBestMove(board, 4);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
             playerMovePiece(board, start_pos, end_pos);
