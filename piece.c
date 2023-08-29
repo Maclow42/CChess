@@ -14,7 +14,7 @@ piece* newPawn(enum color color){
 }
 
 piece* newRock(enum color color){
-    return newPiece(ROCK, color, 4);
+    return newPiece(ROCK, color, 5);
 }
 
 piece* newKnight(enum color color){
@@ -26,7 +26,7 @@ piece* newBishop(enum color color){
 }
 
 piece* newQueen(enum color color){
-    return newPiece(QUEEN, color, 8);
+    return newPiece(QUEEN, color, 15);
 }
 
 piece* newKing(enum color color){
