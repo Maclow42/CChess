@@ -171,9 +171,12 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     return !is_chess;
 }
 
-void movePiece(game_board* board, coords current_pos, coords dest_pos){
+bool movePiece(game_board* board, coords current_pos, coords dest_pos){
     int currentx = current_pos.posx, currenty = current_pos.posy;
     int tox = dest_pos.posx, toy = dest_pos.posy;
+
+    // true if a piece is taken
+    bool pieceTaken = board->board[tox][toy] != NULL;
 
     board->board[tox][toy] = board->board[currentx][currenty];
     board->board[currentx][currenty] = NULL;
@@ -186,6 +189,8 @@ void movePiece(game_board* board, coords current_pos, coords dest_pos){
             board->black_king_pos = Coords(dest_pos.posx, dest_pos.posy);
         }
     }
+
+    return pieceTaken;
 }
 
 bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
