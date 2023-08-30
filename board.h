@@ -33,10 +33,10 @@ void initGameBoard(game_board *board);
 
 bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos);
 bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos);
-bool movePiece(game_board* board, coords current_pos, coords dest_pos);
+piece* movePiece(game_board* board, coords current_pos, coords dest_pos);
 
-int isInChess(game_board* board, coords kingpos);
-bool isMate(game_board* board, coords kingpos);
+int isInChess(game_board* board, enum color color);
+bool isMate(game_board* board, enum color color);
 game_status getGameStatus(game_board* board);
 
 list_t* getPossiblePos(game_board* board, coords current_pos);

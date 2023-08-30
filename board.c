@@ -16,12 +16,12 @@ bool isPosAccessible_Pawn(piece*** board, int currentx, int currenty, int tox, i
     if(board[currentx][currenty]->first_move){
         if(board[currentx][currenty]->color == WHITE){
             if(toy == currenty + 2 && tox == currentx){
-                    return board[tox][toy] == NULL;
+                    return board[tox][toy-1] == NULL && board[tox][toy] == NULL;
             }
         }
         else{
             if(toy == currenty - 2 && tox == currentx){
-                    return board[tox][toy] == NULL;
+                    return board[tox][toy+1] == NULL && board[tox][toy] == NULL;
             }
         }
     }
@@ -93,6 +93,19 @@ bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, i
     if(abs(currentx - tox) > 1 || abs(currenty - toy) > 1)
         return false;
 
+    // if a king of another color is in cases around dest_pos
+    for(int i = -1; i <= 1; i++){
+        for(int j = -1; j <= 1; j++){
+            if(tox+i == currentx && toy+j == currenty)
+                continue;
+            coords current_pos = Coords(tox+i, toy+j);
+            if(areCoordsValid(&current_pos)){
+                if(board[tox+i][toy+j] != NULL && board[tox+i][toy+j]->type == KING)
+                    return false;
+            }
+        }
+    }
+
     return true;    
 }
 
@@ -125,10 +138,10 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
         return false;
     }
 
-    // check if the arrival position is not occupied by a piece of the same color
-    if(board->board[tox][toy] != NULL && board->board[tox][toy]->color == board->board[currentx][currenty]->color){
-        //printf("(%i, %i) to (%i, %i) => trying to bit an allie\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
-        return false;
+    if(board->board[tox][toy] != NULL){
+        // check if the arrival position is not occupied by a piece of the same color
+        if(board->board[tox][toy]->color == board->board[currentx][currenty]->color)
+            return false;
     }
 
     bool is_accessible = false;
@@ -163,34 +176,42 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     //try to move the piece and see if the king is in chess or mate
     color_t current_color = board->board[currentx][currenty]->color;
     piece* tmp = board->board[tox][toy];
+
     movePiece(board, current_pos, dest_pos);
-    bool is_chess = isInChess(board, current_color == WHITE ? board->white_king_pos : board->black_king_pos);
+    bool is_chess = isInChess(board, current_color);
+    if(!is_chess)
+        printf("%s : if move %c%c -> %c%c then no chess\n", current_color==WHITE?"white":"black", currentx+'A', currenty+'1', tox+'A', toy+'1');
     movePiece(board, dest_pos, current_pos);
     board->board[tox][toy] = tmp;
 
     return !is_chess;
 }
 
-bool movePiece(game_board* board, coords current_pos, coords dest_pos){
+piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
+    // if no piece to move -> return NULL
+    // verification useless because movePiece always used after isPosAccessible
+
     int currentx = current_pos.posx, currenty = current_pos.posy;
     int tox = dest_pos.posx, toy = dest_pos.posy;
 
-    // true if a piece is taken
-    bool pieceTaken = board->board[tox][toy] != NULL;
+    // returned the taken piece (NULL if no piece at dest_pos)
+    piece* taken = board->board[tox][toy];
 
     board->board[tox][toy] = board->board[currentx][currenty];
     board->board[currentx][currenty] = NULL;
 
-    if(board->board[tox][toy] != NULL && board->board[tox][toy]->type == KING){
+    if(board->board[tox][toy]->type == KING){
         if(board->board[tox][toy]->color == WHITE){
-            board->white_king_pos = Coords(dest_pos.posx, dest_pos.posy);
+            board->white_king_pos.posx = tox;
+            board->white_king_pos.posy = toy;
         }
         else{
-            board->black_king_pos = Coords(dest_pos.posx, dest_pos.posy);
+            board->black_king_pos.posx = tox;
+            board->black_king_pos.posy = toy;
         }
     }
 
-    return pieceTaken;
+    return taken;
 }
 
 bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
@@ -235,11 +256,24 @@ list_t* getPossiblePos(game_board* board, coords start_pos){
     return result_list;
 }
 
-int isInChess(game_board* board, coords kingpos){
-    int kingposx = kingpos.posx, kingposy = kingpos.posy;
+int isInChess(game_board* board, enum color color){
+    coords kingpos;
+    int kingposx, kingposy;
+    if(color == WHITE){
+        kingpos = board->white_king_pos;
+        kingposx = board->white_king_pos.posx;
+        kingposy = board->white_king_pos.posy;
+    }else{
+        kingpos = board->black_king_pos;
+        kingposx = board->black_king_pos.posx;
+        kingposy = board->black_king_pos.posy;
+    }
 
     if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
-        //fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
+        fprintf(stderr, "No %s king found at position (%hi, %hi).\n", color==WHITE?"white":"black", kingposx, kingposy);
+        fprintf(stderr, "in fact, a %i is there\n", board->board[kingposx][kingposy]->type);
+        puts("proof :");
+        printBoard(board);
         return false;
     }
 
@@ -258,11 +292,21 @@ int isInChess(game_board* board, coords kingpos){
     return false;
 }
 
-bool isMate(game_board* board, coords kingpos){
+bool isMate(game_board* board, enum color color){
     // check if the king can move out of chess
     // Array listing all relative positions accessible by the king
 
-    int kingposx = kingpos.posx, kingposy = kingpos.posy;
+    coords kingpos;
+    int kingposx, kingposy;
+    if(color == WHITE){
+        kingpos = board->white_king_pos;
+        kingposx = board->white_king_pos.posx;
+        kingposy = board->white_king_pos.posy;
+    }else{
+        kingpos = board->black_king_pos;
+        kingposx = board->black_king_pos.posx;
+        kingposy = board->black_king_pos.posy;
+    }
 
     if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
         //fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
@@ -290,7 +334,7 @@ bool isMate(game_board* board, coords kingpos){
             piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
             if(isPosAccessible(board, kingpos, dest_pos)){
                 movePiece(board, kingpos, dest_pos);
-                bool isChess = isInChess(board, dest_pos);
+                bool isChess = isInChess(board, color);
                 movePiece(board, dest_pos, kingpos);
                 board->board[dest_pos.posx][dest_pos.posy] = tmp;
                 if(!isChess){
@@ -352,8 +396,8 @@ bool isMate(game_board* board, coords kingpos){
 
 game_status getGameStatus(game_board* board)
 {
-    bool white_chess = isInChess(board, board->white_king_pos);
-    bool white_mate = isMate(board, board->white_king_pos);
+    bool white_chess = isInChess(board, WHITE);
+    bool white_mate = isMate(board, WHITE);
 
     if(white_chess){
         if(white_mate)
@@ -363,8 +407,8 @@ game_status getGameStatus(game_board* board)
     if(white_mate)
         return PAT;
 
-    bool black_chess = isInChess(board, board->black_king_pos);
-    bool black_mate = isMate(board, board->black_king_pos);
+    bool black_chess = isInChess(board, BLACK);
+    bool black_mate = isMate(board, BLACK);
 
     if(black_chess){
         if(black_mate)

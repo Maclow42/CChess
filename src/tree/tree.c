@@ -22,9 +22,12 @@ void freeTree(tree_t *tree){
     free(tree);
 }
 
-void addChild(tree_t* tree, tree_t* child){
+tree_t* addChild(tree_t* tree, void* data){
+    tree_t* child = newTree();
+    child->data = data;
     child->next = tree->child;
     tree->child = child;
+    return child;
 }
 
 int getNumberOfChild(tree_t* tree){
