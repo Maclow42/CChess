@@ -179,8 +179,6 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 
     movePiece(board, current_pos, dest_pos);
     bool is_chess = isInChess(board, current_color);
-    if(!is_chess)
-        printf("%s : if move %c%c -> %c%c then no chess\n", current_color==WHITE?"white":"black", currentx+'A', currenty+'1', tox+'A', toy+'1');
     movePiece(board, dest_pos, current_pos);
     board->board[tox][toy] = tmp;
 
@@ -256,7 +254,7 @@ list_t* getPossiblePos(game_board* board, coords start_pos){
     return result_list;
 }
 
-int isInChess(game_board* board, enum color color){
+bool isInChess2(game_board* board, enum color color){
     coords kingpos;
     int kingposx, kingposy;
     if(color == WHITE){
@@ -290,6 +288,58 @@ int isInChess(game_board* board, enum color color){
     }
 
     return false;
+}
+
+bool isInChess(game_board* board, enum color color){
+    int kingposx, kingposy;
+    if(color == WHITE){
+        kingposx = board->white_king_pos.posx;
+        kingposy = board->white_king_pos.posy;
+    }else{
+        kingposx = board->black_king_pos.posx;
+        kingposy = board->black_king_pos.posy;
+    }
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            // if no piece at position
+            if(board->board[i][j] == NULL || board->board[i][j]->color == color)
+                continue;
+
+            bool is_accessible = false;
+            switch (board->board[i][j]->type)
+            {
+                case PAWN:
+                    is_accessible = isPosAccessible_Pawn(board->board, i, j, kingposx, kingposy);
+                    break;
+                case ROCK:
+                    is_accessible = isPosAccessible_Rock(board->board, i, j, kingposx, kingposy);
+                    break;
+                case KNIGHT:
+                    is_accessible = isPosAccessible_Knight(board->board, i, j, kingposx, kingposy);
+                    break;
+                case BISHOP:
+                    is_accessible = isPosAccessible_Bishop(board->board, i, j, kingposx, kingposy);
+                    break;
+                case QUEEN:
+                    is_accessible = isPosAccessible_Queen(board->board, i, j, kingposx, kingposy);
+                    break;
+                case KING:
+                    is_accessible = isPosAccessible_King(board->board, i, j, kingposx, kingposy);
+                    break;
+                default:
+                    is_accessible = false;
+                    break;
+            }
+
+            if(is_accessible)
+                return true;
+
+        }
+    }
+
+    return false;
+
 }
 
 bool isMate(game_board* board, enum color color){

@@ -35,7 +35,7 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos);
 bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos);
 piece* movePiece(game_board* board, coords current_pos, coords dest_pos);
 
-int isInChess(game_board* board, enum color color);
+bool isInChess(game_board* board, enum color color);
 bool isMate(game_board* board, enum color color);
 game_status getGameStatus(game_board* board);
 
