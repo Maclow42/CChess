@@ -106,8 +106,8 @@ int evaluateBoard(game_board* board){
         for(int j = 0; j < 8; j++){
             piece* current = board->board[i][j];
             if(current != NULL){
-                int center_score = (i >= 2 && i <= 5 && j >= 2 && j <= 5)? 2 : 0;
-                score += (current->color==WHITE?1:-1) * (center_score + 2*current->value);
+                int center_score = (i >= 2 && i <= 5 && j >= 2 && j <= 5)? 2 : 1;
+                score += (current->color==WHITE?1:-1) * (center_score * current->value);
             }
         }
     }
@@ -145,6 +145,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
     
             //save the piece at end_pos to be able to restore it later
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
+            move_type last_move_type = board->last_move_type;
 
             // do the indicated movement and check if a piece is taken
             movePiece(board, start_pos, end_pos);
@@ -158,8 +159,13 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             max_eval = max(child_score, max_eval);
 
             // undo the indicated movement
+            if(board->last_move_type == PAWN_PROMOTION){
+                board->board[end_pos.posx][end_pos.posy]->type = PAWN;
+                board->board[end_pos.posx][end_pos.posy]->value = 1;
+            }
             movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
+            board->last_move_type = last_move_type;
 
             // alpha beta pruning
             alpha = max(alpha, max_eval);
@@ -181,6 +187,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
     
             //save the piece at end_pos to be able to restore it later
             piece* tmp = board->board[end_pos.posx][end_pos.posy];
+            move_type last_move_type = board->last_move_type;
 
             // do the indicated movement and check if a piece is taken
             movePiece(board, start_pos, end_pos);
@@ -194,8 +201,13 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             min_eval = min(child_score, min_eval);
 
             // undo the indicated movement
+            if(board->last_move_type == PAWN_PROMOTION){
+                board->board[end_pos.posx][end_pos.posy]->type = PAWN;
+                board->board[end_pos.posx][end_pos.posy]->value = 1;
+            }
             movePiece(board, end_pos, start_pos);
             board->board[end_pos.posx][end_pos.posy] = tmp;
+            board->last_move_type = last_move_type;
 
             // alpha beta pruning
             beta = min(beta, min_eval);
@@ -228,7 +240,7 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     //get best moves from the tree
     tree_t* current_child = eval_tree->child;
     while(current_child != NULL){
-        if(((movement_coords*)current_child->data)->score == best_score || getProb() > 2)
+        if(((movement_coords*)current_child->data)->score == best_score || getProb() > 0.90)
             list_rpush(best_moves, list_node_new(current_child->data));
         current_child = current_child->next;
     }
