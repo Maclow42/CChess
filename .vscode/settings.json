@@ -1,7 +1,17 @@
 {
     "files.associations": {
+        "board.h": "c",
+        "coords.h": "c",
+        "./src/list/list.h": "c",
+        "./src/list/list_node.h": "c",
+        "./src/list/list_iterator.h": "c",
+        "./src/tree/tree.h": "c",
+        "piece.h": "c",
         "alpha_beta.h": "c",
-        "tree.h": "c",
-        "limits.h": "c"
+        "type_traits": "c"
+    },
+
+    "code-runner.executorMap": {
+        "c": "gcc main.c piece.c board.c coords.c alpha_beta.c ./src/list/list.c ./src/list/list_node.c ./src/list/list_iterator.c ./src/tree/tree.c -o $dir/$fileNameWithoutExt && $dir/$fileNameWithoutExt"
     }
 }
