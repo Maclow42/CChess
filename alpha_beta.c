@@ -13,33 +13,12 @@ int min(int a, int b){
     return a <= b ? a : b;
 }
 
-// function that print the branch with the best moves
-void printTree(tree_t* tree, int depth, int best_score){
-    if(tree->child == NULL){
-        for(int i = 0; i < depth; i++)
-            printf("  ");
-        print_MoveCoords(tree->data);
-    }
-    else{
-            //search the best move
-            tree_t* current_child = tree->child;
-
-            for(int i = 0; i < depth; i++)
-                printf("  ");
-            print_MoveCoords(tree->data);
-            
-            current_child = tree->child;
-            while(current_child != NULL){
-                if(((movement_coords*)current_child->data)->score == best_score){
-                    // recursivly print the best branc
-                    printTree(current_child, depth+1, best_score);
-                }
-                current_child = current_child->next;
-            }
-        }
-}
-
 movement_coords* moveCoords(coords start, coords end, int score){
+    /*
+        * Create a movement_coords struct
+        * @param start : the starting position of the piece
+        * @param end : the ending position of the piece
+    */
     movement_coords* result = malloc(sizeof(movement_coords));
     result->start_pos = (coords) {start.posx, start.posy};
     result->end_pos = (coords) {end.posx, end.posy};
@@ -48,6 +27,11 @@ movement_coords* moveCoords(coords start, coords end, int score){
 }
 
 list_t* getAllPossibleMove(game_board* board, enum color color){
+    /*
+        * Get all possible move for a given color
+        * @param board : the game board
+        * @param color : the color of the player
+    */
     list_t* possible_move = list_new();
     possible_move->free = free;
     for(int i = 0; i < 8; i++){
@@ -76,6 +60,12 @@ list_t* getAllPossibleMove(game_board* board, enum color color){
 }
 
 int evaluateBoard(game_board* board){
+    /*
+        * Giving a score to the current board
+        * More the score is high, more the board is good for white
+        * More the score is low, more the board is good for black
+        * @param board : the game board
+    */
     int TAKEPIECE_BONUS = 0;
     int CHESS_MALUS = 0;
     int MATE_MALUS = 9999;
@@ -116,6 +106,15 @@ int evaluateBoard(game_board* board){
 }
 
 int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsigned int depth, int alpha, int beta){
+    /*
+        * Minmax algorithm using alpha beta pruning
+        * @param board : the game board
+        * @param color_to_play : the color of the player to play
+        * @param resultTree : the tree to fill with the best move
+        * @param depth : the depth of the algorithm
+        * @param alpha : the alpha value for alpha beta pruning
+        * @param beta : the beta value for alpha beta pruning
+    */
     // get all move allowed for the current player
     list_t* possible_move = getAllPossibleMove(board, color_to_play);
 
@@ -227,6 +226,11 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
 }
 
 movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
+    /*
+        * Get the best move for the current player
+        * @param board : the game board
+        * @param evaluation_depth : the depth of the minmax algorithm
+    */
     srand(time(NULL));
 
     tree_t* eval_tree = newTree();
