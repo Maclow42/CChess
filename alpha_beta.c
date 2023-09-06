@@ -240,7 +240,7 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     //get best moves from the tree
     tree_t* current_child = eval_tree->child;
     while(current_child != NULL){
-        if(((movement_coords*)current_child->data)->score == best_score || (board->nb_piece>5 ? (prob() > 0.90) : 0))
+        if(((movement_coords*)current_child->data)->score == best_score || (board->nb_piece>5 ? (getProb() > 0.90) : 0))
             list_rpush(best_moves, list_node_new(current_child->data));
         current_child = current_child->next;
     }
