@@ -18,12 +18,25 @@ typedef enum{
     RAS
 }game_status;
 
+typedef enum{
+    NORMAL_MOVE,
+    PAWN_PROMOTION,
+    LITTLE_ROOK,
+    BIG_ROOK,
+}move_type;
+
 typedef struct{
     piece*** board;
+    unsigned int nb_piece;
+    
     piece* last_played;
+    move_type last_move_type;
+
     coords white_king_pos;
     coords black_king_pos;
+
     game_status status;
+
     color_t to_play;
 }game_board;
 
@@ -41,4 +54,4 @@ game_status getGameStatus(game_board* board);
 
 list_t* getPossiblePos(game_board* board, coords current_pos);
 
-void printBoard(game_board* board);
+void printBoard(game_board* board, enum color pov);
