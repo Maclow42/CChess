@@ -11,13 +11,13 @@ int main() {
 
     while(1){
         printf("\e[1;1H\e[2J");
-        printBoard(board);
+        printBoard(board, WHITE);
 
         printf("score : %d\n", evaluateBoard(board));
-        printf("status : %i\n", getGameStatus(board));
+        printf("remaining pieces : %d\n", board->nb_piece);
         printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        if(board->to_play == WHITE){
+        if(board->to_play == -1){
             printf("Enter a move : ");
             int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
             if(scan_result == 1)
@@ -30,20 +30,21 @@ int main() {
                 game_status status = getGameStatus(board);
                 if(status == WHITE_MATE || status == BLACK_MATE){
                     printf("\e[1;1H\e[2J");
-                    printBoard(board);
+                    printBoard(board, WHITE);
                     printf("Checkmate !\n");
                     break;
                 }
                 else if(status == PAT){
                     printf("\e[1;1H\e[2J");
-                    printBoard(board);
+                    printBoard(board, WHITE);
                     printf("Pat !\n");
                     break;
                 }
             }
         }
         else{
-            movement_coords* best_move = getBestMove(board, 4);
+            int depth = 4;
+            movement_coords* best_move = getBestMove(board, depth);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
             playerMovePiece(board, start_pos, end_pos);
@@ -51,13 +52,13 @@ int main() {
             game_status status = getGameStatus(board);
                 if(status == WHITE_MATE || status == BLACK_MATE){
                     printf("\e[1;1H\e[2J");
-                    printBoard(board);
-                    printf("Checkmate !\n");
+                    printBoard(board, WHITE);
+                    printf("%s checkmate !\n", status==WHITE_MATE?"White":"Black");
                     break;
                 }
                 else if(status == PAT){
                     printf("\e[1;1H\e[2J");
-                    printBoard(board);
+                    printBoard(board, WHITE);
                     printf("Pat !\n");
                     break;
                 }
