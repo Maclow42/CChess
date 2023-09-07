@@ -158,8 +158,11 @@ bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, i
                 return false;
             }
             // test if little castle
-            else if(tox == 6)
-                return board[7][currenty] != NULL && board[7][currenty]->first_move;
+            else if(tox == 6){
+                if(board[5][currenty] == NULL) // no need to check if board[6][currenty] is NULL
+                    return board[7][currenty] != NULL && board[7][currenty]->first_move;
+                return false;
+            }
             return false;
         }
 
