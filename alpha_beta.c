@@ -1,8 +1,9 @@
 #include <limits.h>
-#include <stdlib.h>
 #include <time.h>
 #include "alpha_beta.h"
 
+
+#define DB printf("%s:%d\n", __FILE__, __LINE__);
 #define getProb() ((float) (rand() % 100) / 100)
 
 int max(int a, int b){
@@ -13,17 +14,28 @@ int min(int a, int b){
     return a <= b ? a : b;
 }
 
-movement_coords* moveCoords(coords start, coords end, int score){
+alpha_beta_predictor* new_Alpha_Beta_Predictor(game_board* board, unsigned int evaluation_depth){
     /*
-        * Create a movement_coords struct
-        * @param start : the starting position of the piece
-        * @param end : the ending position of the piece
+        * Create a new alpha beta predictor
+        * @param board : the game board
+        * @param evaluation_depth : the depth of the minmax algorithm
     */
-    movement_coords* result = malloc(sizeof(movement_coords));
-    result->start_pos = (coords) {start.posx, start.posy};
-    result->end_pos = (coords) {end.posx, end.posy};
-    result->score = score;
-    return result;
+    alpha_beta_predictor* predictor = malloc(sizeof(alpha_beta_predictor));
+    predictor->board = board;
+    predictor->evaluation_depth = evaluation_depth;
+    predictor->treeEvaluation = newTree();
+    predictor->treeEvaluation->data = malloc(sizeof(movement_coords));
+
+    return predictor;
+}
+
+void free_Alpha_Beta_Predictor(alpha_beta_predictor* predictor){
+    /*
+        * Free an alpha beta predictor
+        * @param predictor : the alpha beta predictor
+    */
+    freeTree(predictor->treeEvaluation);
+    free(predictor);
 }
 
 list_t* getAllPossibleMove(game_board* board, enum color color){
@@ -66,8 +78,6 @@ int evaluateBoard(game_board* board){
         * More the score is low, more the board is good for black
         * @param board : the game board
     */
-    int TAKEPIECE_BONUS = 0;
-    int CHESS_MALUS = 0;
     int MATE_MALUS = 9999;
 
     int score = 10 * (board->white_castled - board->black_castled); // castle bonus
@@ -75,14 +85,8 @@ int evaluateBoard(game_board* board){
     // ajust score according to game status
     game_status status = getGameStatus(board);
     switch(status){
-        case WHITE_CHESS:
-            score = -CHESS_MALUS;
-            break;
         case WHITE_MATE:
             return -MATE_MALUS;
-        case BLACK_CHESS:
-            score = CHESS_MALUS;
-            break;
         case BLACK_MATE:
             return MATE_MALUS;
         case PAT:
@@ -117,6 +121,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
     */
     // get all move allowed for the current player
     list_t* possible_move = getAllPossibleMove(board, color_to_play);
+    
 
     if(depth == 0){
         ((movement_coords*)resultTree->data)->score = evaluateBoard(board) + possible_move->len / 5;
@@ -211,7 +216,7 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
     return best_score;
 }
 
-movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
+movement_coords* getBestMove(alpha_beta_predictor *predictor){
     /*
         * Get the best move for the current player
         * @param board : the game board
@@ -219,18 +224,15 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     */
     srand(time(NULL));
 
-    tree_t* eval_tree = newTree();
-    eval_tree->data = malloc(sizeof(movement_coords));
-
-    int best_score = minmax(board, board->to_play, eval_tree, evaluation_depth, INT_MIN, INT_MAX);
+    int best_score = minmax(predictor->board, predictor->board->to_play, predictor->treeEvaluation, predictor->evaluation_depth, INT_MIN, INT_MAX);
 
     //get all move with the best score
     list_t* best_moves = list_new();
 
     //get best moves from the tree
-    tree_t* current_child = eval_tree->child;
+    tree_t* current_child = predictor->treeEvaluation->child;
     while(current_child != NULL){
-        if(((movement_coords*)current_child->data)->score == best_score || (board->nb_piece>5 ? (getProb() > 0.95) : 0))
+        if(((movement_coords*)current_child->data)->score == best_score || (predictor->board->nb_piece>5 ? (getProb() > 0.95) : 0))
             list_rpush(best_moves, list_node_new(current_child->data));
         current_child = current_child->next;
     }
@@ -241,7 +243,6 @@ movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     movement_coords* best_move = moveCoords(best_move_pointer->start_pos, best_move_pointer->end_pos, best_move_pointer->score);
 
     list_destroy(best_moves); // no need to free node->val because all will be freed by freeTree()
-    freeTree(eval_tree);
 
     return best_move;
 }

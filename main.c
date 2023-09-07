@@ -6,6 +6,8 @@ int main() {
     game_board *board = newBoard();
     initGameBoard(board);
 
+    alpha_beta_predictor* predictor = new_Alpha_Beta_Predictor(board, 1);
+
     char* getted_current_pos = malloc(sizeof(char)*2);
     char* getted_to_pos = malloc(sizeof(char)*2);
 
@@ -13,11 +15,9 @@ int main() {
         printf("\e[1;1H\e[2J");
         printBoard(board, WHITE);
 
-        printf("score : %d\n", evaluateBoard(board));
-        printf("remaining pieces : %d\n", board->nb_piece);
         printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        if(board->to_play == -1){
+        if(board->to_play == WHITE){
             printf("Enter a move : ");
             int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
             if(scan_result == 1)
@@ -43,8 +43,7 @@ int main() {
             }
         }
         else{
-            int depth = 3;
-            movement_coords* best_move = getBestMove(board, depth);
+            movement_coords* best_move = getBestMove(predictor);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
             playerMovePiece(board, start_pos, end_pos);
