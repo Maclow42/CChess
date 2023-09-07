@@ -1,5 +1,42 @@
-#include <pthread.h>
 #include "board.h"
+
+void backup_state(game_board* board, coords start_pos, coords end_pos){
+    /*
+        * Backup the state of the board
+        * @param board : the game board
+        * @param start_pos : the starting position of the piece
+        * @param end_pos : the ending position of the piece
+    */
+    state_backuper* to_save = malloc(sizeof(state_backuper));
+    to_save->start_pos = start_pos;
+    to_save->end_pos = end_pos;
+    to_save->taken_piece = board->board[end_pos.posx][end_pos.posy];
+    to_save->last_move = board->last_move_type;
+
+    stack_push(board->moves_stack, to_save);
+}
+
+void restore_state(game_board* board){
+    /*
+        * Restore the state of the board
+        * @param board : the game board
+    */
+    state_backuper* to_restore = stack_pop(board->moves_stack);
+
+    if(board->last_move_type == PAWN_PROMOTION){
+        board->board[to_restore->end_pos.posx][to_restore->end_pos.posy]->type = PAWN;
+        board->board[to_restore->end_pos.posx][to_restore->end_pos.posy]->value = 1;
+    }
+
+    movePiece(board, to_restore->end_pos, to_restore->start_pos);
+
+    board->board[to_restore->end_pos.posx][to_restore->end_pos.posy] = to_restore->taken_piece;
+
+
+    board->last_move_type = to_restore->last_move;
+
+    free(to_restore);
+}
 
 bool isPosAccessible_Pawn(piece*** board, int currentx, int currenty, int tox, int toy){
     // forward move of one case
@@ -207,20 +244,12 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     //try to move the piece and see if the king is in chess or mate
     color_t current_color = board->board[currentx][currenty]->color;
 
-    piece* tmp = board->board[tox][toy];
-    move_type tmp_last_move_type = board->last_move_type;
+    backup_state(board, current_pos, dest_pos);
 
     movePiece(board, current_pos, dest_pos);
     bool is_chess = isInChess(board, current_color);
 
-    
-    if(board->last_move_type == PAWN_PROMOTION){
-        board->board[tox][toy]->type = PAWN;
-        board->board[tox][toy]->value = 1;
-    }
-    movePiece(board, dest_pos, current_pos);
-    board->board[tox][toy] = tmp;
-    board->last_move_type = tmp_last_move_type;
+    restore_state(board);
 
     return !is_chess;
 }
@@ -259,7 +288,6 @@ piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
             board->last_move_type = PAWN_PROMOTION;
         }
         else if(board->board[tox][toy]->color == BLACK && toy == 0){
-            board->board[tox][toy]->type = QUEEN;
             board->board[tox][toy]->type = QUEEN;
             board->board[tox][toy]->value = 15;
             board->last_move_type = PAWN_PROMOTION;
@@ -406,21 +434,14 @@ bool isMate(game_board* board, enum color color){
         coords dest_pos = {kingposx+relative_accessible[i][0], kingposy+relative_accessible[i][1]};
         if(areCoordsValid(&dest_pos)){
             // if the king can move at the position
-            piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
-            move_type last_move_type = board->last_move_type;
             if(isPosAccessible(board, kingpos, dest_pos)){
-                movePiece(board, kingpos, dest_pos);
+                backup_state(board, kingpos, dest_pos);
 
+                movePiece(board, kingpos, dest_pos);
                 bool isChess = isInChess(board, color);
 
-                
-                if(board->last_move_type == PAWN_PROMOTION){
-                    board->board[dest_pos.posx][dest_pos.posy]->type = PAWN;
-                    board->board[dest_pos.posx][dest_pos.posy]->value = 1;
-                }
-                movePiece(board, dest_pos, kingpos);
-                board->board[dest_pos.posx][dest_pos.posy] = tmp;
-                board->last_move_type = last_move_type;
+                restore_state(board);
+
                 if(!isChess){
                     return false;
                 }
@@ -509,6 +530,35 @@ game_status getGameStatus(game_board* board)
     return RAS;
 }
 
+void print_piece(piece* piece){
+    if(piece == NULL)
+        printf("%s", "   ");
+    else
+        switch (piece->type){
+            case PAWN:
+                printf("%s", piece->color == BLACK ? " ♙ " : " ♟ ");
+                break;
+            case ROCK:
+                printf("%s", piece->color == BLACK ? " ♖ " : " ♜ ");
+                break;
+            case KNIGHT:
+                printf("%s", piece->color == BLACK ? " ♘ " : " ♞ ");
+                break;
+            case BISHOP:
+                printf("%s", piece->color == BLACK ? " ♗ " : " ♝ ");
+                break;
+            case QUEEN:
+                printf("%s", piece->color == BLACK ? " ♕ " : " ♛ ");
+                break;
+            case KING:
+                printf("%s", piece->color == BLACK ? " ♔ " : " ♚ ");
+                break;
+            default:
+                printf("%s", "   ");
+                break;
+        }
+}
+
 void printBoard_as_WHITE(game_board* board){
 
     printf("     A   B   C   D   E   F   G   H\n");
@@ -518,32 +568,7 @@ void printBoard_as_WHITE(game_board* board){
             printf("   ├───┼───┼───┼───┼───┼───┼───┼───┤\n");
         printf(" %i %s", j+1, "│");
         for(int i = 0; i < 8; i++){
-            if(board->board[i][j] == NULL)
-                printf("%s", "   ");
-            else
-                switch (board->board[i][j]->type){
-                    case PAWN:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♙ " : " ♟ ");
-                        break;
-                    case ROCK:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♖ " : " ♜ ");
-                        break;
-                    case KNIGHT:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♘ " : " ♞ ");
-                        break;
-                    case BISHOP:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♗ " : " ♝ ");
-                        break;
-                    case QUEEN:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♕ " : " ♛ ");
-                        break;
-                    case KING:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♔ " : " ♚ ");
-                        break;
-                    default:
-                        printf("%s", "   ");
-                        break;
-                }
+            print_piece(board->board[i][j]);
             if(i == 7)
                 printf("│ %i\n", j+1);
             else
@@ -563,32 +588,7 @@ void printBoard_as_BLACK(game_board* board){
             printf("   ├───┼───┼───┼───┼───┼───┼───┼───┤\n");
         printf(" %i %s", j+1, "│");
         for(int i = 0; i < 8; i++){
-            if(board->board[i][j] == NULL)
-                printf("%s", "   ");
-            else
-                switch (board->board[i][j]->type){
-                    case PAWN:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♙ " : " ♟ ");
-                        break;
-                    case ROCK:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♖ " : " ♜ ");
-                        break;
-                    case KNIGHT:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♘ " : " ♞ ");
-                        break;
-                    case BISHOP:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♗ " : " ♝ ");
-                        break;
-                    case QUEEN:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♕ " : " ♛ ");
-                        break;
-                    case KING:
-                        printf("%s", board->board[i][j]->color == BLACK ? " ♔ " : " ♚ ");
-                        break;
-                    default:
-                        printf("%s", "   ");
-                        break;
-                }
+            print_piece(board->board[i][j]);
             if(i == 7)
                 printf("│ %i\n", j+1);
             else
@@ -631,6 +631,8 @@ void freeBoard(game_board *board) {
 
 
 void initGameBoard(game_board *board){
+    board->moves_stack = stack_new();
+
     board->white_king_pos = Coords(4, 0);
     board->black_king_pos = Coords(4, 7);
 

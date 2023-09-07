@@ -8,6 +8,7 @@
 #include "piece.h"
 #include "coords.h"
 #include "./src/list/list.h"
+#include "./src/stack/stack.h"
 
 typedef enum{
     WHITE_CHESS,
@@ -26,6 +27,13 @@ typedef enum{
 }move_type;
 
 typedef struct{
+    coords start_pos;
+    coords end_pos;
+    piece* taken_piece;
+    move_type last_move;
+}state_backuper;
+
+typedef struct{
     piece*** board;
     unsigned int nb_piece;
     
@@ -36,6 +44,8 @@ typedef struct{
     coords black_king_pos;
 
     game_status status;
+
+    stack_t* moves_stack;
 
     color_t to_play;
 }game_board;
@@ -55,3 +65,6 @@ game_status getGameStatus(game_board* board);
 list_t* getPossiblePos(game_board* board, coords current_pos);
 
 void printBoard(game_board* board, enum color pov);
+
+void backup_state(game_board* board, coords start_pos, coords end_pos);
+void restore_state(game_board* board);
