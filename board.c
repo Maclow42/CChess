@@ -143,32 +143,32 @@ bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox,
     return true;
 }
 
+
 bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, int toy){
     // if this is a castle move
-    if(toy == currenty && abs(tox - currentx) == 2 && board[currentx][currenty]->first_move){
-        // if there is a piece between the king and the rock
-        if(tox > currentx){
-            if(board[7][currenty] == NULL || !board[7][currenty]->first_move)
+
+    if(abs(currentx - tox) > 1){
+        // Castle ?
+        // if the king is in his initial position and the movement is horizontal
+        if(currenty == toy && board[currentx][currenty]->first_move){
+            // test if big castle
+            if(tox == 2){
+                if(board[1][currenty] == NULL && board[3][currenty] == NULL)
+                    return board[0][currenty] != NULL && board[0][currenty]->first_move;
                 return false;
-            for(int i = currentx+1; i < tox; i++){
-                if(board[i][currenty] != NULL)
-                    return false;
             }
+            // test if little castle
+            else if(tox == 6)
+                return board[7][currenty] != NULL && board[7][currenty]->first_move;
+            return false;
         }
-        else{
-            if(board[0][currenty] == NULL || !board[0][currenty]->first_move)
-                return false;
-            for(int i = currentx-1; i > tox; i--){
-                if(board[i][currenty] != NULL)
-                    return false;
-            }
-        }
-        return true;
+
+        return false;
     }
 
-    // if this is a normal move
-    if(abs(currentx - tox) > 1 || abs(currenty - toy) > 1)
+    if(abs(currenty - toy) > 1)
         return false;
+
 
     // if a king of another color is in cases around dest_pos
     for(int i = -1; i <= 1; i++){
