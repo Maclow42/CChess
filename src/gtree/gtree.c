@@ -17,6 +17,11 @@ void free_gtree(gtree_t *tree){
     free(tree);
 }
 
+void gtree_resize_nb_children(gtree_t *tree, unsigned int nb_children){
+    tree->children = realloc(tree->children, nb_children * sizeof(gtree_t*));
+    tree->max_children = nb_children;
+}
+
 void gtree_add_child(gtree_t *tree, gtree_t *child){
     if(tree->nb_children < tree->max_children){
         tree->children[tree->nb_children] = child;
