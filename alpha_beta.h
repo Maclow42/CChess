@@ -4,12 +4,13 @@
 #include "coords.h"
 #include "./src/list/list.h"
 #include "./src/tree/tree.h"
+#include "./src/gtree/gtree.h"
 
 typedef struct{
     game_board *board;
 
     unsigned int evaluation_depth;
-    tree_t* treeEvaluation;
+    gtree_t* treeEvaluation;
 }alpha_beta_predictor;
 
 alpha_beta_predictor* new_Alpha_Beta_Predictor(game_board* board, unsigned int evaluation_depth);

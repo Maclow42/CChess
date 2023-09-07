@@ -23,8 +23,7 @@ alpha_beta_predictor* new_Alpha_Beta_Predictor(game_board* board, unsigned int e
     alpha_beta_predictor* predictor = malloc(sizeof(alpha_beta_predictor));
     predictor->board = board;
     predictor->evaluation_depth = evaluation_depth;
-    predictor->treeEvaluation = newTree();
-    predictor->treeEvaluation->data = malloc(sizeof(movement_coords));
+    predictor->treeEvaluation = new_gtree(malloc(sizeof(movement_coords)), 0);
 
     return predictor;
 }
@@ -34,7 +33,7 @@ void free_Alpha_Beta_Predictor(alpha_beta_predictor* predictor){
         * Free an alpha beta predictor
         * @param predictor : the alpha beta predictor
     */
-    freeTree(predictor->treeEvaluation);
+    free_gtree(predictor->treeEvaluation);
     free(predictor);
 }
 
@@ -109,7 +108,7 @@ int evaluateBoard(game_board* board){
     return score;
 }
 
-int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsigned int depth, int alpha, int beta){
+int minmax(game_board* board, enum color color_to_play, gtree_t* resultTree, unsigned int depth, int alpha, int beta){
     /*
         * Minmax algorithm using alpha beta pruning
         * @param board : the game board
@@ -136,6 +135,9 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
         return ((movement_coords*)resultTree->data)->score;
     }
 
+    // resize the resultTree to the number of possible move
+    gtree_resize_nb_children(resultTree, possible_move->len);
+
     int best_score = 0;
     
     if(color_to_play == WHITE){
@@ -154,7 +156,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using moveCoords()
-            tree_t* new_child = addChild(resultTree, moveCoords(start_pos, end_pos, 0));
+            gtree_t* new_child = new_gtree(moveCoords(start_pos, end_pos, 0), 0);
+            gtree_add_child(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, BLACK, new_child, depth-1, alpha, beta);
@@ -189,7 +192,8 @@ int minmax(game_board* board, enum color color_to_play, tree_t* resultTree, unsi
             movePiece(board, start_pos, end_pos);
 
             //create the node to insert as a son to resultTree using moveCoords()
-            tree_t* new_child = addChild(resultTree, moveCoords(start_pos, end_pos, 0));
+            gtree_t* new_child = new_gtree(moveCoords(start_pos, end_pos, 0), 0);
+            gtree_add_child(resultTree, new_child);
 
             // recursivly launch to the new_child and set result_Tree's score accordingly
             int child_score = minmax(board, WHITE, new_child, depth-1, alpha, beta);
@@ -224,17 +228,17 @@ movement_coords* getBestMove(alpha_beta_predictor *predictor){
     */
     srand(time(NULL));
 
+    predictor->treeEvaluation = new_gtree(malloc(sizeof(movement_coords)), 0);
+
     int best_score = minmax(predictor->board, predictor->board->to_play, predictor->treeEvaluation, predictor->evaluation_depth, INT_MIN, INT_MAX);
 
     //get all move with the best score
     list_t* best_moves = list_new();
 
     //get best moves from the tree
-    tree_t* current_child = predictor->treeEvaluation->child;
-    while(current_child != NULL){
-        if(((movement_coords*)current_child->data)->score == best_score || (predictor->board->nb_piece>5 ? (getProb() > 0.95) : 0))
-            list_rpush(best_moves, list_node_new(current_child->data));
-        current_child = current_child->next;
+    for(unsigned int i = 0; i < predictor->treeEvaluation->nb_children; i++){
+        if(((movement_coords*)predictor->treeEvaluation->children[i]->data)->score == best_score)
+            list_rpush(best_moves, list_node_new(predictor->treeEvaluation->children[i]->data));
     }
 
     //get a random move among all those with the best score
