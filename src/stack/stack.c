@@ -1,4 +1,5 @@
-#include <stack.h>
+#include <stdio.h>
+#include "stack.h"
 
 stack_t* stack_new(){
     stack_t* new_stack = malloc(sizeof(stack_t));
@@ -20,6 +21,23 @@ void stack_free(stack_t* stack){
     }
     stack_node_free(stack->sentinel);
     free(stack);
+}
+
+void print_stack(stack_t* stack) {
+    if (stack == NULL || stack_is_empty(stack)) {
+        printf("Empty Stack\n");
+        return;
+    }
+
+    printf("Stack: ");
+    stack_node_t* current = stack->sentinel->next;
+
+    while (current != NULL) {
+        printf("%p -> ", current->data);
+        current = current->next;
+    }
+
+    printf("NULL\n");
 }
 
 void stack_free_with_data(stack_t* stack, void (*free_data)(void*)){

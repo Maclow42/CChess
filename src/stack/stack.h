@@ -20,3 +20,5 @@ void* stack_pop(stack_t* stack);
 void* stack_peek(stack_t* stack);
 
 bool stack_is_empty(stack_t* stack);
+
+void print_stack(stack_t* stack);

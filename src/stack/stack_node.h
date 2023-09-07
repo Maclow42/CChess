@@ -5,7 +5,7 @@
 
 typedef struct stack_node_s{
     void* data;
-    struct stack_node_s * next;
+    struct stack_node_s* next;
 }stack_node_t;
 
 stack_node_t* stack_node_new(void* data);
