@@ -1,36 +1,36 @@
-# Jeu d'Échecs en Console avec Algorithme Alpha-Bêta
+# Console Chess Game with Alpha-Beta Algorithm
 
-Ce projet est un jeu d'échecs en console écrit en langage C qui vous permet de jouer contre l'ordinateur grâce à l'algorithme alpha-bêta. Il est conçu pour offrir une expérience de jeu classique d'échecs avec une intelligence artificielle compétente.
+This project is a console-based chess game written in the C language that allows you to play against the computer using the alpha-beta algorithm. It is designed to provide a classic chess gaming experience with competent artificial intelligence.
 
-## Fonctionnalités
+## Features
 
-- Interface utilisateur en console pour jouer aux échecs.
-- Mode joueur contre joueur.
-- Mode joueur contre ordinateur avec un algorithme alpha-bêta.
-- Affichage du plateau de jeu en ASCII art.
-- Validation des mouvements selon les règles des échecs.
-- Détection de la fin de partie (échec et mat, pat, etc.).
+- Console-based user interface for playing chess.
+- Player vs. player mode.
+- Player vs. computer mode with an alpha-beta algorithm.
+- Display of the game board in ASCII art.
+- Validation of moves according to the rules of chess.
+- Detection of endgame conditions (checkmate, stalemate, etc.).
 
-## Comment jouer
+## How to Play
 
-1. Clonez ce dépôt sur votre machine :
-git clone https://github.com/votre-nom/util-chess-console.git
+1. Clone this repository to your machine:
+```git clone https://github.com/Maclow42/CChess.git```
 
-2. Compilez le code source en utilisant un compilateur C compatible avec C99.
+2. Compile the source code using make (Makefile provided).
 
-3. Exécutez le programme :
-./main
+3. Run the program:
+```./main```
 
-4. Suivez les instructions à l'écran pour jouer.
+4. Follow the on-screen instructions to play.
 
-## Configuration de l'Algorithme Alpha-Bêta
+## Alpha-Beta Algorithm Configuration
 
-Vous pouvez personnaliser les paramètres de l'algorithme alpha-bêta en modifiant le fichier de configuration `alpha_beta_config.h`.
+You can customize the settings of the alpha-beta algorithm by modifying the `alpha_beta_config.h` configuration file.
 
 ## Contributions
 
-Les contributions sont les bienvenues ! Si vous souhaitez améliorer ce jeu d'échecs en console, n'hésitez pas à ouvrir une issue ou à soumettre une demande d'extraction (pull request).
+Contributions are welcome! If you'd like to improve this console chess game, feel free to open an issue or submit a pull request.
 
 ---
 
-Amusez-vous bien en jouant aux échecs avec ce jeu en console ! Si vous avez des questions ou des suggestions, n'hésitez pas à les partager.
+Enjoy playing chess with this console game! If you have any questions or suggestions, please don't hesitate to share them.
