@@ -43,7 +43,7 @@ int main() {
             }
         }
         else{
-            int depth = 4;
+            int depth = 3;
             movement_coords* best_move = getBestMove(board, depth);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
