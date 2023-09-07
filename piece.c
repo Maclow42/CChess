@@ -9,6 +9,20 @@ piece* newPiece(enum piece_type type, enum color color, unsigned int value){
     return new_piece;
 }
 
+void promote_pawn(piece* pawn_piece){
+    if(pawn_piece->type != PAWN)
+        return;
+    pawn_piece->type = QUEEN;
+    pawn_piece->value = 15;
+}
+
+void unpromote_pawn(piece* queen_piece){
+    if(queen_piece->type != QUEEN)
+        return;
+    queen_piece->type = PAWN;
+    queen_piece->value = 1;
+}
+
 piece* newPawn(enum color color){
     return newPiece(PAWN, color, 1);
 }

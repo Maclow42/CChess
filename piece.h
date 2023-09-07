@@ -21,8 +21,10 @@ enum piece_type {
 typedef struct{
     enum piece_type type;
     enum color color;
+
     unsigned int value;
-    bool first_move; // usefull for pawn to double
+    bool first_move; // usefull for pawn to double/en passant and for king/rock to castle
+
 }piece;
 
 piece* newPiece(enum piece_type type, enum color color, unsigned int value);
@@ -32,3 +34,6 @@ piece* newKnight(enum color color);
 piece* newBishop(enum color color);
 piece* newQueen(enum color color);
 piece* newKing(enum color color);
+
+void promote_pawn(piece* pawn_piece);
+void unpromote_pawn(piece* queen_piece);
