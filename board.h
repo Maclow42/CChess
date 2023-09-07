@@ -22,8 +22,8 @@ typedef enum{
 typedef enum{
     NORMAL_MOVE,
     PAWN_PROMOTION,
-    LITTLE_ROOK,
-    BIG_ROOK,
+    LITTLE_CASTLE,
+    BIG_CASTLE,
 }move_type;
 
 typedef struct{
@@ -44,6 +44,8 @@ typedef struct{
     coords black_king_pos;
 
     game_status status;
+    bool white_castled;
+    bool black_castled;
 
     stack_t* moves_stack;
 

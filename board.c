@@ -1,5 +1,7 @@
 #include "board.h"
 
+#define DP printf("%s : %d\n", __FILE__, __LINE__);
+
 void backup_state(game_board* board, coords start_pos, coords end_pos){
     /*
         * Backup the state of the board
@@ -23,15 +25,27 @@ void restore_state(game_board* board){
     */
     state_backuper* to_restore = stack_pop(board->moves_stack);
 
-    if(board->last_move_type == PAWN_PROMOTION){
+    switch (board->last_move_type)
+    {
+    case PAWN_PROMOTION:
         board->board[to_restore->end_pos.posx][to_restore->end_pos.posy]->type = PAWN;
         board->board[to_restore->end_pos.posx][to_restore->end_pos.posy]->value = 1;
+        break;
+    case LITTLE_CASTLE:
+        board->board[7][to_restore->end_pos.posy] = board->board[5][to_restore->end_pos.posy];
+        board->board[5][to_restore->end_pos.posy] = NULL;
+        break;
+    case BIG_CASTLE:
+        board->board[0][to_restore->end_pos.posy] = board->board[3][to_restore->end_pos.posy];
+        board->board[3][to_restore->end_pos.posy] = NULL;
+        break;
+    default:
+        break;
     }
 
     movePiece(board, to_restore->end_pos, to_restore->start_pos);
 
     board->board[to_restore->end_pos.posx][to_restore->end_pos.posy] = to_restore->taken_piece;
-
 
     board->last_move_type = to_restore->last_move;
 
@@ -118,7 +132,7 @@ bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox,
 
     int dist = abs(currentx - tox);
 
-    int vect_x = abs(tox - currentx)/(tox - currentx);
+    int vect_x = abs(tox - currentx)/(tox - currentx); // no risk of division by 0 (tested in isPosAccessible)
     int vect_y = abs(toy - currenty)/(toy - currenty);
 
     for(int i = 1; i < dist; i++){
@@ -130,32 +144,27 @@ bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox,
 }
 
 bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, int toy){
-    # if 0
-    // if this is a rook move
-    if(board[currentx][currenty]->first_move){
-        // if it is not a move from 2 horizontaly
-        if(toy == currenty && abs(tox - currentx) == 2){
-            // if there is a piece between the king and the rock
-            if(tox > currentx){
-                if(board[7][currenty] == NULL || !board[7][currenty]->first_move)
+    // if this is a castle move
+    if(toy == currenty && abs(tox - currentx) == 2 && board[currentx][currenty]->first_move){
+        // if there is a piece between the king and the rock
+        if(tox > currentx){
+            if(board[7][currenty] == NULL || !board[7][currenty]->first_move)
+                return false;
+            for(int i = currentx+1; i < tox; i++){
+                if(board[i][currenty] != NULL)
                     return false;
-                for(int i = currentx+1; i < tox; i++){
-                    if(board[i][currenty] != NULL)
-                        return false;
-                }
             }
-            else{
-                if(board[0][currenty] == NULL || !board[0][currenty]->first_move)
-                    return false;
-                for(int i = currentx-1; i > tox; i--){
-                    if(board[i][currenty] != NULL)
-                        return false;
-                }
-            }
-            return true;
         }
+        else{
+            if(board[0][currenty] == NULL || !board[0][currenty]->first_move)
+                return false;
+            for(int i = currentx-1; i > tox; i--){
+                if(board[i][currenty] != NULL)
+                    return false;
+            }
+        }
+        return true;
     }
-    #endif
 
     // if this is a normal move
     if(abs(currentx - tox) > 1 || abs(currenty - toy) > 1)
@@ -167,7 +176,7 @@ bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, i
             if(tox+i == currentx && toy+j == currenty)
                 continue;
             coords current_pos = Coords(tox+i, toy+j);
-            if(areCoordsValid(&current_pos)){
+            if(areCoordsValid(current_pos)){
                 if(board[tox+i][toy+j] != NULL && board[tox+i][toy+j]->type == KING)
                     return false;
             }
@@ -195,7 +204,7 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     unsigned int toy = dest_pos.posy;
 
     // if coords are not valid then return false
-    if(!(areCoordsValid(&current_pos) && areCoordsValid(&dest_pos))){
+    if(!(areCoordsValid(current_pos) && areCoordsValid(dest_pos))){
         //printf("(%i, %i) to (%i, %i) => invalid coords\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
         return false;
     }
@@ -255,6 +264,20 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 }
 
 piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
+    /*
+        * Move the piece at current_pos to dest_pos
+        * Return the taken piece (NULL if no piece at dest_pos)
+        * Update board->last_move_type
+            * PAWN_PROMOTION if a pawn is promoted
+            * LITTLE_CASTLE if a little castle is done
+            * BIG_CASTLE if a big castle is done
+            * NORMAL_MOVE otherwise
+        * Update the king position if one is moved
+        * @param board : the game board
+        * @param current_pos : the current position of the piece
+        * @param dest_pos : the destination position of the piece
+    */
+   
     // if no piece to move -> return NULL
     // verification useless because movePiece always used after isPosAccessible
 
@@ -270,6 +293,17 @@ piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
 
     // update king position if needed
     if(board->board[tox][toy]->type == KING){
+        // if it was a castle move
+        if(currentx == 4 && tox == 2){
+            board->board[3][currenty] = board->board[0][currenty];
+            board->board[0][currenty] = NULL;
+            board->last_move_type = BIG_CASTLE;
+        }
+        else if(currentx == 4 && tox == 6){
+            board->board[5][currenty] = board->board[7][currenty];
+            board->board[7][currenty] = NULL;
+            board->last_move_type = LITTLE_CASTLE;
+        }
         if(board->board[tox][toy]->color == WHITE){
             board->white_king_pos.posx = tox;
             board->white_king_pos.posy = toy;
@@ -314,6 +348,14 @@ bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     }
 
     piece* taken = movePiece(board, current_pos, dest_pos);
+
+    if(board->last_move_type == LITTLE_CASTLE || board->last_move_type == BIG_CASTLE){
+        if(board->to_play == WHITE)
+            board->white_castled = true;
+        else
+            board->black_castled = true;
+    }
+
     if(taken != NULL){
         board->nb_piece--;
         free(taken);
@@ -432,7 +474,7 @@ bool isMate(game_board* board, enum color color){
 
     for(int i = 0; i < 8; i++){
         coords dest_pos = {kingposx+relative_accessible[i][0], kingposy+relative_accessible[i][1]};
-        if(areCoordsValid(&dest_pos)){
+        if(areCoordsValid(dest_pos)){
             // if the king can move at the position
             if(isPosAccessible(board, kingpos, dest_pos)){
                 backup_state(board, kingpos, dest_pos);
@@ -637,6 +679,9 @@ void initGameBoard(game_board *board){
     board->black_king_pos = Coords(4, 7);
 
     board->nb_piece = 32;
+
+    board->white_castled = true;
+    board->black_castled = true;
 
     board->to_play = WHITE;
 
