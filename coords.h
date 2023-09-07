@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
-
 typedef struct{
     unsigned int posx;
     unsigned int posy;
@@ -13,7 +11,8 @@ typedef struct{
     int score;
 }movement_coords;
 
-coords Coords(unsigned int posx, unsigned int posy);
-bool areCoordsValid(coords* coords);
+#define Coords(posx, posy) ((coords){posx, posy})
+
+#define areCoordsValid(coords) ((coords.posx) < 8 && (coords.posy) < 8)
 
 void print_MoveCoords(movement_coords* move);
