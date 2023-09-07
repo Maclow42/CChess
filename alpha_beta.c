@@ -70,7 +70,7 @@ int evaluateBoard(game_board* board){
     int CHESS_MALUS = 0;
     int MATE_MALUS = 9999;
 
-    int score = board->white_castled - board->black_castled; // castle bonus
+    int score = 10 * (board->white_castled - board->black_castled); // castle bonus
 
     // ajust score according to game status
     game_status status = getGameStatus(board);
