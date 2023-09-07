@@ -15,4 +15,5 @@ typedef struct{
 
 #define areCoordsValid(coords) ((coords.posx) < 8 && (coords.posy) < 8)
 
+movement_coords* moveCoords(coords start, coords end, int score);
 void print_MoveCoords(movement_coords* move);
