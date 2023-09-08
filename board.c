@@ -1,16 +1,15 @@
 #include "board.h"
+#include "./src/usefull.h"
 
-#define DP printf("%s : %d\n", __FILE__, __LINE__);
-
-void backup_state(game_board* board, coords start_pos, coords end_pos){
+void backup_state(game_board* board, coords current_pos, coords end_pos){
     /*
         * Backup the state of the board
         * @param board : the game board
-        * @param start_pos : the starting position of the piece
+        * @param current_pos : the starting position of the piece
         * @param end_pos : the ending position of the piece
     */
     state_backuper* to_save = malloc(sizeof(state_backuper));
-    to_save->start_pos = start_pos;
+    to_save->start_pos = current_pos;
     to_save->end_pos = end_pos;
     to_save->taken_piece = board->board[end_pos.posx][end_pos.posy];
     to_save->last_move = board->last_move_type;
@@ -52,7 +51,11 @@ void restore_state(game_board* board){
     free(to_restore);
 }
 
-bool isPosAccessible_Pawn(piece*** board, int currentx, int currenty, int tox, int toy){
+bool isPosAccessible_Pawn(game_board* game_board, coords current_pos, coords end_pos){
+    piece*** board = game_board->board;
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = end_pos.posx, toy = end_pos.posy;
+    
     // forward move of one case
     if(toy == currenty + (board[currentx][currenty]->color == WHITE?1:-1)){
         if(tox == currentx)
@@ -81,7 +84,31 @@ bool isPosAccessible_Pawn(piece*** board, int currentx, int currenty, int tox, i
     return false;
 }
 
-bool isPosAccessible_Rock(piece*** board, int currentx, int currenty, int tox, int toy){
+void getAllMoves_Pawn(game_board* board, coords current_pos, list_t* result_list){
+    int vect_dir = board->board[current_pos.posx][current_pos.posy]->color == WHITE?1:-1;
+
+    coords dest_pos = {current_pos.posx, current_pos.posy+vect_dir};
+    if(isPosAccessible(board, current_pos, dest_pos))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+    dest_pos = (coords) {current_pos.posx, current_pos.posy+2*vect_dir};
+    if(isPosAccessible(board, current_pos, dest_pos))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+        
+    dest_pos = (coords) {current_pos.posx+1, current_pos.posy+vect_dir};
+    if(isPosAccessible(board, current_pos, dest_pos))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+        
+    dest_pos = (coords) {current_pos.posx-1, current_pos.posy+vect_dir};
+    if(isPosAccessible(board, current_pos, dest_pos))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+}
+
+bool isPosAccessible_Rock(game_board* game_board, coords current_pos, coords end_pos){
+    piece*** board = game_board->board;
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = end_pos.posx, toy = end_pos.posy;
+    
     if(toy != currenty && tox != currentx)
         return false;
     
@@ -106,7 +133,22 @@ bool isPosAccessible_Rock(piece*** board, int currentx, int currenty, int tox, i
     return true;
 }
 
-bool isPosAccessible_Knight(piece*** board, int currentx, int currenty, int tox, int toy){
+void getAllMoves_Rock(game_board* board, coords current_pos, list_t* result_list){
+    for(int i = 0; i < 8; i++){
+        coords dest_pos = {i, current_pos.posy};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx, i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+    }
+}
+
+bool isPosAccessible_Knight(game_board* game_board, coords current_pos, coords end_pos){
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = end_pos.posx, toy = end_pos.posy;
+    
     // Array listing all relative positions accessible by a knight
     int relative_accessible[8][2] = {  {-2, 1},
                                         {-1, 2},
@@ -126,7 +168,21 @@ bool isPosAccessible_Knight(piece*** board, int currentx, int currenty, int tox,
     return false;
 }
 
-bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox, int toy){
+void getAllMoves_Knight(game_board* board, coords current_pos, list_t* result_list){
+    for(int i = -2; i <= 2; i++){
+        for(int j = -2; j <= 2; j++){
+            coords dest_pos = {current_pos.posx+i, current_pos.posy+j};
+            if(isPosAccessible(board, current_pos, dest_pos))
+                list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+        }
+    }
+}
+
+bool isPosAccessible_Bishop(game_board* game_board, coords current_pos, coords end_pos){
+    piece*** board = game_board->board;
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = end_pos.posx, toy = end_pos.posy;
+    
     if(abs(currentx - tox) != abs(currenty - toy))
         return false;
 
@@ -143,8 +199,31 @@ bool isPosAccessible_Bishop(piece*** board, int currentx, int currenty, int tox,
     return true;
 }
 
+void getAllMoves_Bishop(game_board* board, coords current_pos, list_t* result_list){
+    for(int i = 1; i < 8; i++){
+        coords dest_pos = {current_pos.posx+i, current_pos.posy+i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
 
-bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, int toy){
+        dest_pos = (coords) {current_pos.posx+i, current_pos.posy-i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx-i, current_pos.posy+i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx-i, current_pos.posy-i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+    }
+}
+
+bool isPosAccessible_King(game_board* game_board, coords current_pos, coords end_pos){
+    piece*** board = game_board->board;
+    int currentx = current_pos.posx, currenty = current_pos.posy;
+    int tox = end_pos.posx, toy = end_pos.posy;
+    
     // if this is a castle move
 
     if(abs(currentx - tox) > 1){
@@ -178,7 +257,7 @@ bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, i
         for(int j = -1; j <= 1; j++){
             if(tox+i == currentx && toy+j == currenty)
                 continue;
-            coords current_pos = Coords(tox+i, toy+j);
+            coords current_pos = {tox+i, toy+j};
             if(areCoordsValid(current_pos)){
                 if(board[tox+i][toy+j] != NULL && board[tox+i][toy+j]->type == KING)
                     return false;
@@ -189,9 +268,53 @@ bool isPosAccessible_King(piece*** board, int currentx, int currenty, int tox, i
     return true;    
 }
 
-bool isPosAccessible_Queen(piece*** board, int currentx, int currenty, int tox, int toy){
-    return  isPosAccessible_Bishop(board, currentx, currenty, tox, toy) || \
-            isPosAccessible_Rock(board, currentx, currenty, tox, toy);
+void getAllMoves_King(game_board* board, coords current_pos, list_t* result_list){
+    for(int i = -1; i <= 1; i++){
+        for(int j = -1; j <= 1; j++){
+            coords dest_pos = {current_pos.posx+i, current_pos.posy+j};
+            if(isPosAccessible(board, current_pos, dest_pos))
+                list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+        }
+    }
+    coords little_castle = {6, current_pos.posy};
+    coords big_castle = {2, current_pos.posy};
+    if(isPosAccessible(board, current_pos, little_castle))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, little_castle, 0)));
+    if(isPosAccessible(board, current_pos, big_castle))
+        list_rpush(result_list, list_node_new(moveCoords(current_pos, big_castle, 0)));
+}
+
+bool isPosAccessible_Queen(game_board* game_board, coords current_pos, coords end_pos){
+    return  isPosAccessible_Bishop(game_board, current_pos, end_pos) || \
+            isPosAccessible_Rock(game_board, current_pos, end_pos);
+}
+
+void getAllMoves_Queen(game_board* board, coords current_pos, list_t* result_list){
+    for(int i = 0; i < 8; i++){
+        coords dest_pos = {current_pos.posx+i, current_pos.posy+i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx+i, current_pos.posy-i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx-i, current_pos.posy+i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx-i, current_pos.posy-i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {i, current_pos.posy};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+
+        dest_pos = (coords) {current_pos.posx, i};
+        if(isPosAccessible(board, current_pos, dest_pos))
+            list_rpush(result_list, list_node_new(moveCoords(current_pos, dest_pos, 0)));
+    }
 }
 
 bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
@@ -228,22 +351,22 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     switch (board->board[currentx][currenty]->type)
     {
         case PAWN:
-            is_accessible = isPosAccessible_Pawn(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_Pawn(board, current_pos, dest_pos);
             break;
         case ROCK:
-            is_accessible = isPosAccessible_Rock(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_Rock(board, current_pos, dest_pos);
             break;
         case KNIGHT:
-            is_accessible = isPosAccessible_Knight(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_Knight(board, current_pos, dest_pos);
             break;
         case BISHOP:
-            is_accessible = isPosAccessible_Bishop(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_Bishop(board, current_pos, dest_pos);
             break;
         case QUEEN:
-            is_accessible = isPosAccessible_Queen(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_Queen(board, current_pos, dest_pos);
             break;
         case KING:
-            is_accessible = isPosAccessible_King(board->board, currentx, currenty, tox, toy);
+            is_accessible = isPosAccessible_King(board, current_pos, dest_pos);
             break;
         default:
             is_accessible = false;
@@ -371,35 +494,71 @@ bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     return true;
 }
 
-list_t* getPossiblePos(game_board* board, coords start_pos){
-    list_t *result_list = list_new();
-    result_list->free = free;
+list_t* getAllPossibleMoves(game_board* board, enum color color){
+    /*
+        * Get all possible move for a given color
+        * @param board : the game board
+        * @param color : the color of the player
+    */
+    list_t* possible_moves = list_new();
 
-    for(int i = 0; i < 8; i++)
-        for(int j = 0; j < 8; j++){
-            coords *current_ij = malloc(sizeof(coords));
-            current_ij->posx = i;
-            current_ij->posy = j;
-            if(isPosAccessible(board, start_pos, *current_ij)){
-                list_rpush(result_list, list_node_new(current_ij));
+    for(int k = 0; k < 8; k++){
+        for(int l = 0; l < 8; l++){
+            // if the piece is of the right color
+            if(board->board[k][l] != NULL && board->board[k][l]->color == color){
+                // get all possible move for this piece
+                coords current_pos = {k, l};
+
+                switch (board->board[current_pos.posx][current_pos.posy]->type)
+                {
+                    case PAWN:
+                        getAllMoves_Pawn(board, current_pos, possible_moves);
+                        break;
+                    case ROCK:
+                        getAllMoves_Rock(board, current_pos, possible_moves);
+                        break;
+                    case KNIGHT:
+                        getAllMoves_Knight(board, current_pos, possible_moves);
+                        break;
+                    case BISHOP:
+                        getAllMoves_Bishop(board, current_pos, possible_moves);
+                        break;
+                    case QUEEN:
+                        getAllMoves_Queen(board, current_pos, possible_moves);
+                        break;
+                    case KING:
+                        getAllMoves_King(board, current_pos, possible_moves);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-    
-    return result_list;
+    }
+
+    #if 0
+    //print all moves_coords in possible_moves
+    puts("\nAll possible moves :");
+    list_node_t *node;
+    list_iterator_t *it = list_iterator_new(possible_moves, LIST_HEAD);
+    while ((node = list_iterator_next(it))) {
+        enum piece_type type = board->board[((movement_coords*) node->val)->start_pos.posx][((movement_coords*) node->val)->start_pos.posy]->type;
+        movement_coords* current_move = (movement_coords*) node->val;
+        printf("%s %c%c->%c%c \n", type==PAWN?"PAWN":type==ROCK?"ROCK":type==KNIGHT?"KNIGHT":type==BISHOP?"BISHOP":type==QUEEN?"QUEEN":"KING", current_move->start_pos.posx + 'A', current_move->start_pos.posy + '1', current_move->end_pos.posx + 'A', current_move->end_pos.posy +'1');
+    }
+    # endif
+    return possible_moves;
 }
 
 bool isInChess(game_board* board, enum color color){
-    int kingposx, kingposy;
-    if(color == WHITE){
-        kingposx = board->white_king_pos.posx;
-        kingposy = board->white_king_pos.posy;
-    }else{
-        kingposx = board->black_king_pos.posx;
-        kingposy = board->black_king_pos.posy;
-    }
+    coords king_pos = color == WHITE
+                        ? board->white_king_pos
+                        : board->black_king_pos;
 
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
+            coords current_pos = {i, j};
+
             // if no piece at position
             if(board->board[i][j] == NULL || board->board[i][j]->color == color)
                 continue;
@@ -408,22 +567,22 @@ bool isInChess(game_board* board, enum color color){
             switch (board->board[i][j]->type)
             {
                 case PAWN:
-                    is_accessible = isPosAccessible_Pawn(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_Pawn(board, current_pos, king_pos);
                     break;
                 case ROCK:
-                    is_accessible = isPosAccessible_Rock(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_Rock(board, current_pos, king_pos);
                     break;
                 case KNIGHT:
-                    is_accessible = isPosAccessible_Knight(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_Knight(board, current_pos, king_pos);
                     break;
                 case BISHOP:
-                    is_accessible = isPosAccessible_Bishop(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_Bishop(board, current_pos, king_pos);
                     break;
                 case QUEEN:
-                    is_accessible = isPosAccessible_Queen(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_Queen(board, current_pos, king_pos);
                     break;
                 case KING:
-                    is_accessible = isPosAccessible_King(board->board, i, j, kingposx, kingposy);
+                    is_accessible = isPosAccessible_King(board, current_pos, king_pos);
                     break;
                 default:
                     is_accessible = false;
@@ -457,7 +616,7 @@ bool isMate(game_board* board, enum color color){
     }
 
     if(board->board[kingposx][kingposy] == NULL || board->board[kingposx][kingposy]->type != KING){
-        //fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
+        fprintf(stderr, "No king found at position (%hi, %hi).\n", kingposx, kingposy);
         return false;
     }
 
@@ -509,32 +668,13 @@ bool isMate(game_board* board, enum color color){
                     continue;
 
                 // get all accessible positions
-                coords current_pos = Coords(i, j);
-                list_t *access_list = getPossiblePos(board, current_pos);
-
-                #if 0
-                // move the current piece to all accessible positions
-                bool is_chess = true;
-                list_node_t *node;
-                list_iterator_t *it = list_iterator_new(access_list, LIST_HEAD);
-                while ((node = list_iterator_next(it)) && is_chess) {
-                    coords dest_pos = *(coords*)node->val;
-                    piece* tmp = board->board[dest_pos.posx][dest_pos.posy];
-                    // try to move the piece
-                    if(isPosAccessible(board, current_pos, dest_pos)){
-                        return false;
-                    }
-                    else
-                        printf("strange that (%i, %i) to (%i, %i) not possible\n", i, j, dest_pos.posx, dest_pos.posy);
-                }
-
-                list_iterator_destroy(it);
-                #endif
-
+                list_t *access_list = getAllPossibleMoves(board, color);
+                
                 if(access_list->len != 0){
                     list_destroy(access_list);
                     return false;
                 }
+
                 list_destroy(access_list);
 
             }
@@ -544,7 +684,6 @@ bool isMate(game_board* board, enum color color){
 
 }
 
-#define NUM_THREADS 4
 game_status getGameStatus(game_board* board)
 {
     if(board->nb_piece == 2)
@@ -678,8 +817,8 @@ void freeBoard(game_board *board) {
 void initGameBoard(game_board *board){
     board->moves_stack = stack_new();
 
-    board->white_king_pos = Coords(4, 0);
-    board->black_king_pos = Coords(4, 7);
+    board->white_king_pos = (coords) {4, 0};
+    board->black_king_pos = (coords) {4, 7};
 
     board->nb_piece = 32;
 

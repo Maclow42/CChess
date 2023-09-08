@@ -64,9 +64,13 @@ bool isInChess(game_board* board, enum color color);
 bool isMate(game_board* board, enum color color);
 game_status getGameStatus(game_board* board);
 
-list_t* getPossiblePos(game_board* board, coords current_pos);
+list_t* getAllPossibleMoves(game_board* board, enum color color);
 
 void printBoard(game_board* board, enum color pov);
 
 void backup_state(game_board* board, coords start_pos, coords end_pos);
 void restore_state(game_board* board);
+
+
+
+#define DB printf("%s:%d\n", __FILE__, __LINE__);

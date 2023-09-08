@@ -17,7 +17,7 @@ int main() {
 
         printf("to play : %s\n", board->to_play==WHITE?"white":"black");
 
-        if(board->to_play == WHITE){
+        if(board->to_play == -1){
             printf("Enter a move : ");
             int scan_result = scanf("%s %s", getted_current_pos, getted_to_pos);
             if(scan_result == 1)
@@ -27,6 +27,7 @@ int main() {
             coords to_pos = {getted_to_pos[0] - 'A', getted_to_pos[1] - '1'};
             
             if(playerMovePiece(board, current_pos, to_pos)){
+                predictor_update_with_move(predictor, moveCoords(current_pos, to_pos, 0));
                 game_status status = getGameStatus(board);
                 if(status == WHITE_MATE || status == BLACK_MATE){
                     printf("\e[1;1H\e[2J");
@@ -46,7 +47,8 @@ int main() {
             movement_coords* best_move = getBestMove(predictor);
             coords start_pos = best_move->start_pos;
             coords end_pos = best_move->end_pos;
-            playerMovePiece(board, start_pos, end_pos);
+            if(playerMovePiece(board, start_pos, end_pos))
+                predictor_update_with_move(predictor, best_move);
             
             game_status status = getGameStatus(board);
                 if(status == WHITE_MATE || status == BLACK_MATE){

@@ -17,3 +17,5 @@ alpha_beta_predictor* new_Alpha_Beta_Predictor(game_board* board, unsigned int e
 void free_Alpha_Beta_Predictor(alpha_beta_predictor* predictor);
 
 movement_coords* getBestMove(alpha_beta_predictor *predictor);
+
+void predictor_update_with_move(alpha_beta_predictor* predictor, movement_coords* move);

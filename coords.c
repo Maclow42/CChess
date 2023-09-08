@@ -18,3 +18,14 @@ movement_coords* moveCoords(coords start, coords end, int score){
 void print_MoveCoords(movement_coords* move){
     printf("%c%c -> %c%c\n", move->start_pos.posx + 'A', move->start_pos.posy + '1', move->end_pos.posx + 'A', move->end_pos.posy + '1');
 }
+
+bool areMovementCoordsEqual(movement_coords* move1, movement_coords* move2){
+    return areCoordsEqual(move1->start_pos, move2->start_pos) && areCoordsEqual(move1->end_pos, move2->end_pos);
+}
+
+coords* Coords(int posx, int posy){
+    coords* result = malloc(sizeof(coords));
+    result->posx = posx;
+    result->posy = posy;
+    return result;
+}
