@@ -3,7 +3,6 @@
 #include "board.h"
 #include "coords.h"
 #include "./src/list/list.h"
-#include "./src/tree/tree.h"
 #include "./src/gtree/gtree.h"
 
 typedef struct{
