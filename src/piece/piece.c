@@ -1,5 +1,7 @@
 #include "piece.h"
 
+#include <stdlib.h>
+
 piece* newPiece(enum piece_type type, enum color color, unsigned int value){
     piece* new_piece = malloc(sizeof(piece));
     new_piece->type = type;

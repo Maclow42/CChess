@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "./src/board/board.h"
+#include "./src/gameboard/gameboard.h"
 #include "./src/minmax/minmax.h"
 
 int main() {

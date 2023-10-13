@@ -6,7 +6,11 @@ LDLIBS =
 
 SRC = 	main.c \
 		./src/piece/piece.c \
-		./src/board/board.c \
+		./src/gameboard/gameboard.c \
+		./src/gameboard/accessible_pos.c \
+		./src/gameboard/game_status.c \
+		./src/gameboard/move_piece.c \
+		./src/gameboard/state_backuper.c \
 		./src/coords/coords.c \
 		./src/minmax/minmax.c \
 		./src/macros/usefull.c \

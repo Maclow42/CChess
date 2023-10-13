@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../board/board.h"
+#include "../gameboard/gameboard.h"
 #include "../coords/coords.h"
 #include "../list/list.h"
 #include "../gtree/gtree.h"

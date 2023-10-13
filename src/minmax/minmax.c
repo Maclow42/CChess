@@ -1,6 +1,13 @@
 #include <limits.h>
 #include <time.h>
+
 #include "minmax.h"
+
+#include "../gameboard/game_status.h"
+#include "../gameboard/accessible_pos.h"
+#include "../gameboard/move_piece.h"
+#include "../gameboard/state_backuper.h"
+
 #include "../macros/usefull.h"
 
 int evaluateBoard(game_board* board){
@@ -75,7 +82,7 @@ int minmax(game_board* board, enum color color_to_play, gtree_t* resultTree, uns
         return best_score;
     }
 
-    list_t* possible_move = getAllPossibleMoves(board, color_to_play);
+    list_t* possible_move = getAccessiblePos(board, color_to_play);
     
     if(depth == 0){
         ((movement_coords*)resultTree->data)->score = evaluateBoard(board) + possible_move->len / 5;
