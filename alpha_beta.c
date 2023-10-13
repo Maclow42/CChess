@@ -3,30 +3,6 @@
 #include "alpha_beta.h"
 #include "./src/usefull.h"
 
-alpha_beta_predictor* new_Alpha_Beta_Predictor(game_board* board, unsigned int evaluation_depth){
-    /*
-        * Create a new alpha beta predictor
-        * @param board : the game board
-        * @param evaluation_depth : the depth of the minmax algorithm
-    */
-    alpha_beta_predictor* predictor = malloc(sizeof(alpha_beta_predictor));
-    predictor->board = board;
-    predictor->evaluation_depth = evaluation_depth;
-    predictor->treeEvaluation = new_gtree(malloc(sizeof(movement_coords)), 0);
-
-    return predictor;
-}
-
-void free_Alpha_Beta_Predictor(alpha_beta_predictor* predictor){
-    /*
-        * Free an alpha beta predictor
-        * @param predictor : the alpha beta predictor
-    */
-    free_gtree(predictor->treeEvaluation);
-    free(predictor);
-}
-
-
 int evaluateBoard(game_board* board){
     /*
         * Giving a score to the current board
@@ -199,36 +175,7 @@ int minmax(game_board* board, enum color color_to_play, gtree_t* resultTree, uns
     return best_score;
 }
 
-void predictor_update_with_move(alpha_beta_predictor* predictor, movement_coords* move)
-{
-    /*
-        * Update the predictor with the move of the opponent
-        * @param predictor : the alpha beta predictor
-        * @param move : the move of the opponent
-    */
-    // get the node corresponding to the move
-    gtree_t* node = NULL;
-    for(unsigned int i = 0; i < predictor->treeEvaluation->nb_children; i++){
-        if(areMovementCoordsEqual((movement_coords*)predictor->treeEvaluation->children[i]->data, move)){
-            node = predictor->treeEvaluation->children[i];
-            break;
-        }
-    }
-
-    if(node != NULL){
-        gtree_remove_child(predictor->treeEvaluation, node);
-        free_gtree(predictor->treeEvaluation);
-    }
-    else{
-        printf("it was null\n");
-        node = new_gtree(move, 0);
-    }
-
-    // set the new root
-    predictor->treeEvaluation = node;
-}
-
-movement_coords* getBestMove(alpha_beta_predictor *predictor){
+movement_coords* getBestMove(game_board* board, unsigned int evaluation_depth){
     /*
         * Get the best move for the current player
         * @param board : the game board
@@ -236,17 +183,17 @@ movement_coords* getBestMove(alpha_beta_predictor *predictor){
     */
     srand(time(NULL));
 
-    predictor->treeEvaluation = new_gtree(malloc(sizeof(movement_coords)), 0);
+    gtree_t *treeEvaluation = new_gtree(malloc(sizeof(movement_coords)), 0);
 
-    int best_score = minmax(predictor->board, predictor->board->to_play, predictor->treeEvaluation, predictor->evaluation_depth, INT_MIN, INT_MAX);
+    int best_score = minmax(board, board->to_play, treeEvaluation, evaluation_depth, INT_MIN, INT_MAX);
 
     //get all move with the best score
     list_t* best_moves = list_new();
 
     //get best moves from the tree
-    for(unsigned int i = 0; i < predictor->treeEvaluation->nb_children; i++){
-        if(((movement_coords*)predictor->treeEvaluation->children[i]->data)->score == best_score || getProb() > 0.95)
-            list_rpush(best_moves, list_node_new(predictor->treeEvaluation->children[i]->data));
+    for(unsigned int i = 0; i < treeEvaluation->nb_children; i++){
+        if(((movement_coords*)treeEvaluation->children[i]->data)->score == best_score || getProb() > 0.95)
+            list_rpush(best_moves, list_node_new(treeEvaluation->children[i]->data));
     }
 
     //get a random move among all those with the best score
