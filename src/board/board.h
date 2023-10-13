@@ -5,10 +5,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "piece.h"
-#include "coords.h"
-#include "./src/list/list.h"
-#include "./src/stack/stack.h"
+#include "../piece/piece.h"
+#include "../coords/coords.h"
+#include "../list/list.h"
+#include "../stack/stack.h"
 
 typedef enum{
     WHITE_CHESS,

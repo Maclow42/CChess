@@ -1,5 +1,5 @@
 #include "board.h"
-#include "./src/usefull.h"
+#include "../macros/usefull.h"
 
 void backup_state(game_board* board, coords current_pos, coords end_pos){
     /*

@@ -25,7 +25,7 @@ This project is a console-based chess game written in the C language that allows
 
 ## Alpha-Beta Algorithm Configuration
 
-You can customize the settings of the alpha-beta algorithm by modifying the `alpha_beta_config.h` configuration file.
+You can customize the settings of the alpha-beta algorithm by modifying the `minmax_config.h` configuration file.
 
 ## Contributions
 

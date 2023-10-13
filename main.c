@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "board.h"
-#include "alpha_beta.h"
+#include "./src/board/board.h"
+#include "./src/minmax/minmax.h"
 
 int main() {
     game_board *board = newBoard();

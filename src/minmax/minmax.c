@@ -1,7 +1,7 @@
 #include <limits.h>
 #include <time.h>
-#include "alpha_beta.h"
-#include "./src/usefull.h"
+#include "minmax.h"
+#include "../macros/usefull.h"
 
 int evaluateBoard(game_board* board){
     /*
