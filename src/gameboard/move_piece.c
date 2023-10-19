@@ -71,20 +71,20 @@ piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
     return taken;
 }
 
-bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
+int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     if(board->board[current_pos.posx][current_pos.posy] == NULL){
         printf("No piece at the given position.\n");
-        return false;
+        return 404;
     }
 
     if(board->board[current_pos.posx][current_pos.posy]->color != board->to_play){
         printf("It's not your turn to play.\n");
-        return false;
+        return -1;
     }
 
     if(!isPosAccessible(board, current_pos, dest_pos)){
         printf("The piece can't be moved to the given position.\n");
-        return false;
+        return 301;
     }
 
     piece* taken = movePiece(board, current_pos, dest_pos);
@@ -105,5 +105,5 @@ bool playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     board->board[dest_pos.posx][dest_pos.posy]->first_move = false;
     board->to_play = board->to_play == WHITE ? BLACK : WHITE;
 
-    return true;
+    return 1;
 }
