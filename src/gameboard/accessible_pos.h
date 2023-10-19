@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "gameboard.h"
+#include "move_piece.h"
 
 #include "../coords/coords.h"
 #include "../list/list.h"

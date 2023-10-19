@@ -1,6 +1,5 @@
 #include "accessible_pos.h"
 
-#include "move_piece.h"
 #include "state_backuper.h"
 
 
