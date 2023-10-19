@@ -18,12 +18,12 @@ Welcome to CChess, a simple chess game coded in C that allows you to play agains
 ## Screenshots
 
 1. **Main Menu:**
-   - Include a screenshot of the main menu where users can choose between playing against the AI or another person.
+   - Here's the game's main menu, where you can choose between playing alone against the AI or with two players on the same screen.
 
    ![Main Menu](screenshots/menu.png)
 
 2. **Gameplay:**
-   - Capture a screenshot during a game against the AI, showcasing the chessboard and current moves.
+   - Once on the game screen, you can move the pieces by clicking on them with the mouse. If you're playing against the AI, it will automatically play after you.
 
    ![Gameplay](screenshots/gameplay.png)
 
