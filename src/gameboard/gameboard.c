@@ -1,81 +1,123 @@
 #include "gameboard.h"
 
-#include "accessible_pos.h"
+#include <stdarg.h>
+#include <string.h>
 
-void print_piece(piece* piece){
+
+void strcatf(char *dest, const char *format, ...) {
+    /*
+        * This function is used to concatenate a formatted string to another string
+        * args:
+        *  - dest: the string to concatenate to
+        * - format: the format of the string to concatenate
+        * - ...: the arguments to the format string
+    */
+    va_list args;
+    va_start(args, format);
+
+    // Use vsnprintf to get the size of the formatted string
+    int size = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+
+    // Allocate enough memory for the formatted string
+    char *formatted_str = (char *)malloc(size + 1);
+
+    va_start(args, format);
+    vsnprintf(formatted_str, size + 1, format, args);
+    va_end(args);
+
+    // Concatenate the formatted string to dest
+    strcat(dest, formatted_str);
+
+    // free the memory allocated by vsnprintf
+    free(formatted_str);
+}
+
+
+void print_piece(char* square, piece* piece){
     if(piece == NULL)
-        printf("%s", "   ");
+        sprintf(square, "%s", "   ");
     else
         switch (piece->type){
             case PAWN:
-                printf("%s", piece->color == BLACK ? " ♙ " : " ♟ ");
+                sprintf(square, piece->color == BLACK ? " ♙ " : " ♟ ");
                 break;
             case ROCK:
-                printf("%s", piece->color == BLACK ? " ♖ " : " ♜ ");
+                sprintf(square, piece->color == BLACK ? " ♖ " : " ♜ ");
                 break;
             case KNIGHT:
-                printf("%s", piece->color == BLACK ? " ♘ " : " ♞ ");
+                sprintf(square, piece->color == BLACK ? " ♘ " : " ♞ ");
                 break;
             case BISHOP:
-                printf("%s", piece->color == BLACK ? " ♗ " : " ♝ ");
+                sprintf(square, piece->color == BLACK ? " ♗ " : " ♝ ");
                 break;
             case QUEEN:
-                printf("%s", piece->color == BLACK ? " ♕ " : " ♛ ");
+                sprintf(square, piece->color == BLACK ? " ♕ " : " ♛ ");
                 break;
             case KING:
-                printf("%s", piece->color == BLACK ? " ♔ " : " ♚ ");
+                sprintf(square, piece->color == BLACK ? " ♔ " : " ♚ ");
                 break;
             default:
-                printf("%s", "   ");
+                sprintf(square, "   ");
                 break;
         }
 }
 
-void printBoard_as_WHITE(game_board* board){
-
-    printf("     A   B   C   D   E   F   G   H\n");
-    printf("   ┌───┬───┬───┬───┬───┬───┬───┬───┐\n");
+void printBoard_as_WHITE(char** result, game_board* board){
+    sprintf(result[0], "    A   B   C   D   E   F   G   H");
+    sprintf(result[1], "  ┌───┬───┬───┬───┬───┬───┬───┬───┐");
     for(int j = 7; j >= 0; j--){
         if(j != 7)
-            printf("   ├───┼───┼───┼───┼───┼───┼───┼───┤\n");
-        printf(" %i %s", j+1, "│");
+            sprintf(result[2*(7-j)+1], "  ├───┼───┼───┼───┼───┼───┼───┼───┤");
+
+        char line[102] = "";
+        strcatf(line, "%i │", j+1);
         for(int i = 0; i < 8; i++){
-            print_piece(board->board[i][j]);
-            if(i == 7)
-                printf("│ %i\n", j+1);
-            else
-                printf("│");
+            char tmp[6] = "";
+            print_piece(tmp, board->board[i][j]);
+            strcatf(line, tmp);
+            if(i == 7){
+                strcatf(line, "│ %i", j+1);
+            }else{
+                strcatf(line, "│");
+            }
         }
+        sprintf(result[2*(7-j)+2], "%s", line);
     }
-    printf("   └───┴───┴───┴───┴───┴───┴───┴───┘\n");
-    printf("     A   B   C   D   E   F   G   H\n");
+    sprintf(result[17], "  └───┴───┴───┴───┴───┴───┴───┴───┘");
+    sprintf(result[18], "    A   B   C   D   E   F   G   H");
 }
 
-void printBoard_as_BLACK(game_board* board){
-
-    printf("     A   B   C   D   E   F   G   H\n");
-    printf("   ┌───┬───┬───┬───┬───┬───┬───┬───┐\n");
+void printBoard_as_BLACK(char** result, game_board* board){
+    sprintf(result[0], "    A   B   C   D   E   F   G   H  ");
+    sprintf(result[1], "  ┌───┬───┬───┬───┬───┬───┬───┬───┐");
     for(int j = 0; j < 8; j++){
         if(j != 0)
-            printf("   ├───┼───┼───┼───┼───┼───┼───┼───┤\n");
-        printf(" %i %s", j+1, "│");
+            sprintf(result[2*j+1], "  ├───┼───┼───┼───┼───┼───┼───┼───┤");
+
+        char line[102] = "";
+        strcatf(line, "%i │", j+1);
         for(int i = 0; i < 8; i++){
-            print_piece(board->board[i][j]);
-            if(i == 7)
-                printf("│ %i\n", j+1);
-            else
-                printf("│");
+            char tmp[6] = "";
+            print_piece(tmp, board->board[i][j]);
+            strcatf(line, tmp);
+            if(i == 7){
+                strcatf(line, "│ %i", j+1);
+            }else{
+                strcatf(line, "│");
+            }
         }
+        sprintf(result[2*j+2], "%s", line);
     }
-    printf("   └───┴───┴───┴───┴───┴───┴───┴───┘\n");
-    printf("     A   B   C   D   E   F   G   H\n");
+    sprintf(result[17], "  └───┴───┴───┴───┴───┴───┴───┴───┘");
+    sprintf(result[18], "    A   B   C   D   E   F   G   H");
 }
 
-void printBoard(game_board* board, enum color pov){
+void printBoard(game_board* board, enum color pov, char** result){
     if(pov == WHITE)
-        printBoard_as_WHITE(board);
+        printBoard_as_WHITE(result, board);
     else
-        printBoard_as_BLACK(board);
+        printBoard_as_BLACK(result, board);
 }
 
 game_board* newBoard(){

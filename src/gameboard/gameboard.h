@@ -47,4 +47,5 @@ game_board* newBoard();
 void freeBoard(game_board* board);
 void initGameBoard(game_board *board);
 
-void printBoard(game_board* board, enum color pov);
+void print_piece(char* square, piece* piece);
+void printBoard(game_board* board, enum color pov, char** result);
