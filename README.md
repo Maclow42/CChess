@@ -1,39 +1,73 @@
-# Console Chess Game with Alpha-Beta Algorithm
+# CChess
 
-This project is a console-based chess game written in the C language that allows you to play against the computer using the alpha-beta algorithm. It is designed to provide a classic chess gaming experience with competent artificial intelligence.
+Welcome to CChess, a simple chess game coded in C that allows you to play against an AI using the minmax algorithm or against another person on the same screen. The graphical interface is built using the ncurses library.
 
-## Features
 
-- Console-based user interface for playing chess.
-- Player vs. player mode.
-- Player vs. computer mode with an alpha-beta algorithm.
-- Display of the game board in ASCII art.
-- Validation of moves according to the rules of chess.
-- Detection of endgame conditions (checkmate, stalemate, etc.).
+## Table of Contents
 
-## How to Play
+- [Screenshots](#screenshots)
+  - [Main Menu](#main-menu)
+  - [Gameplay](#gameplay)
+- [Minmax Algorithm in Chess](#minmax-algorithm-in-chess)
+- [Cloning the Project](#cloning-the-project)
+- [Installing Dependencies](#installing-dependencies)
+- [Compilation](#compilation)
+- [Running the Game](#running-the-game)
+- [License](#license)
 
-1. Clone this repository to your machine:
-```git clone https://github.com/Maclow42/CChess.git```
+## Screenshots
 
-2. Compile the source code using make (Makefile provided).
+1. **Main Menu:**
+   - Include a screenshot of the main menu where users can choose between playing against the AI or another person.
 
-3. Run the program:
-```./main```
+   ![Main Menu](screenshots/menu.png)
 
-4. Follow the on-screen instructions to play.
+2. **Gameplay:**
+   - Capture a screenshot during a game against the AI, showcasing the chessboard and current moves.
 
-## Alpha-Beta Algorithm Configuration
+   ![Gameplay](screenshots/gameplay.png)
 
-You can customize the settings of the alpha-beta algorithm by modifying the `minmax_config.h` configuration file.
+## Minmax Algorithm in Chess
 
-## Contributions
+The AI opponent in this game utilizes the minmax algorithm to make decisions. The minmax algorithm is a decision-making algorithm used in two-player games, such as chess. Here's a brief explanation:
 
-Contributions are welcome! If you'd like to improve this console chess game, feel free to open an issue or submit a pull request.
+1. **Maximizing Player (AI):**
+   - The AI is the maximizing player, trying to get the highest possible score. It assumes that the opponent will make the best moves to minimize the AI's score.
 
----
+2. **Minimizing Player (Opponent/You):**
+   - The opponent, or the human player, is the minimizing player, trying to get the lowest possible score. It assumes that the AI will make the best moves to maximize the opponent's score.
 
-##installation
-install sudo apt-get install libncurses5-dev libncursesw5-dev
+3. **Recursive Exploration:**
+   - The algorithm recursively explores possible moves, creating a tree of possible game states. At each level, the maximizing player chooses the move with the highest score, and the minimizing player chooses the move with the lowest score.
 
-Enjoy playing chess with this console game! If you have any questions or suggestions, please don't hesitate to share them.
+4. **Heuristic Evaluation:**
+   - The algorithm uses a heuristic evaluation function to assess the desirability of a particular board state. This function assigns a score based on factors like piece values, board control, and positional advantage.
+
+## Cloning the Project
+
+To clone the repository, use the following command:
+```git clone https://github.com/your-username/CChess.git```
+
+## Installing Dependencies
+
+Before compiling the project, make sure you have the ncurses library installed on your system.
+
+On Debian-based systems, you can install it with:
+```sudo apt-get install libncurses5-dev libncursesw5-dev```
+
+On Red Hat-based systems, use:
+```sudo yum install ncurses-devel```
+
+On Manjaro-based systems, use:
+```pamac install ncurses```
+
+## Compilation
+
+To Navigate, compile and execute the game, use the following command:
+```cd CChess && make && make run```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Feel free to contribute and enjoy playing chess with CChess!
