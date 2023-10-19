@@ -332,7 +332,7 @@ move_return_code isPosAccessible(game_board* board, coords current_pos, coords d
     }
 
     if(!is_accessible)
-        return 0;
+        return ERROR_INVALID_MOVE;
 
     //try to move the piece and see if the king is in chess or mate
     color_t current_color = board->board[currentx][currenty]->color;
