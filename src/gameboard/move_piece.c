@@ -82,9 +82,21 @@ int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
         return -1;
     }
 
-    if(!isPosAccessible(board, current_pos, dest_pos)){
-        printf("The piece can't be moved to the given position.\n");
-        return 301;
+    switch (isPosAccessible(board, current_pos, dest_pos)){
+        case 0:
+            printf("Error : The piece can't be moved to the given position.\n");
+            return 301;
+        case 404:
+            printf("Error : No piece at the given position.\n");
+            return 404;
+        case 3945:
+            printf("Error : The arrival position is not occupied by a piece of the same color\n");
+            return 3945;
+        case 13:
+            printf("Error : The piece can't be moved to the given position because it would put the king in check.\n");
+            return 13;
+        default:
+            break;
     }
 
     piece* taken = movePiece(board, current_pos, dest_pos);
