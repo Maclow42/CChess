@@ -16,7 +16,7 @@ bool isPosAccessible_Knight(game_board* game_board, coords current_pos, coords e
 bool isPosAccessible_Bishop(game_board* game_board, coords current_pos, coords end_pos);
 bool isPosAccessible_Queen(game_board* game_board, coords current_pos, coords end_pos);
 bool isPosAccessible_King(game_board* game_board, coords current_pos, coords end_pos);
-int isPosAccessible(game_board* board, coords current_pos, coords dest_pos);
+move_return_code isPosAccessible(game_board* board, coords current_pos, coords dest_pos);
 
 
 list_t* getAccessiblePos(game_board* board, enum color color);

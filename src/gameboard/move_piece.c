@@ -71,42 +71,34 @@ piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
     return taken;
 }
 
-int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
+move_return_code playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     /*
         * Try to move the piece at current_pos to dest_pos
         * @param board : the game board
         * @param current_pos : the current position of the piece
         * @param dest_pos : the destination position of the piece
-        * @return 404 if no piece at current_pos
-        *         -1 if it's not the player's turn
-        *         0 if the piece can't be moved to dest_pos
-        *         3945 if the arrival position is not occupied by a piece of the same color
-        *         13 if the piece can't be moved to dest_pos because it would put the king in check
-        *         1 if the piece has been moved
+        * @return the corresponding move_return_code
     */
     if(board->board[current_pos.posx][current_pos.posy] == NULL){
         printf("No piece at the given position.\n");
-        return 404;
+        return ERROR_NO_PIECE_AT_GIVEN_POS;
     }
 
     if(board->board[current_pos.posx][current_pos.posy]->color != board->to_play){
         printf("It's not your turn to play.\n");
-        return -1;
+        return ERROR_WRONG_COLOR;
     }
 
     switch (isPosAccessible(board, current_pos, dest_pos)){
-        case 0:
+        case ERROR_INVALID_MOVE:
             printf("Error : The piece can't be moved to the given position.\n");
-            return 0;
-        case 404:
+            return ERROR_INVALID_MOVE;
+        case ERROR_NO_PIECE_AT_GIVEN_POS:
             printf("Error : No piece at the given position.\n");
-            return 404;
-        case 3945:
-            printf("Error : The arrival position is not occupied by a piece of the same color\n");
-            return 3945;
-        case 13:
+            return ERROR_NO_PIECE_AT_GIVEN_POS;
+        case ERROR_CHESS:
             printf("Error : The piece can't be moved to the given position because it would put the king in check.\n");
-            return 13;
+            return ERROR_CHESS;
         default:
             break;
     }
@@ -129,5 +121,5 @@ int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     board->board[dest_pos.posx][dest_pos.posy]->first_move = false;
     board->to_play = board->to_play == WHITE ? BLACK : WHITE;
 
-    return 1;
+    return OK_DONE;
 }

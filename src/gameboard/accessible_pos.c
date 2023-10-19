@@ -270,7 +270,7 @@ void getAllMoves_Queen(game_board* board, coords current_pos, list_t* result_lis
     }
 }
 
-int isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
+move_return_code isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     /*
         * Check if a piece can move from current_pos to dest_pos
         * @param board : the game board
@@ -292,18 +292,18 @@ int isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 
     // if coords are not valid then return false
     if(!(areCoordsValid(current_pos) && areCoordsValid(dest_pos))){
-        return -1;
+        return ERROR_INVALID_MOVE;
     }
 
     // check if there is no piece at the current position
     if(board->board[currentx][currenty] == NULL){
-        return 404;
+        return ERROR_NO_PIECE_AT_GIVEN_POS;
     }
 
     if(board->board[tox][toy] != NULL){
         // check if the arrival position is not occupied by a piece of the same color
         if(board->board[tox][toy]->color == board->board[currentx][currenty]->color)
-            return 3945;
+            return ERROR_INVALID_MOVE;
     }
 
     bool is_accessible = false;
@@ -345,7 +345,7 @@ int isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 
     restore_state(board);
 
-    return is_chess ? 13 : true;
+    return is_chess ? ERROR_CHESS : OK_DONE;
 }
 
 list_t* getAccessiblePos(game_board* board, enum color color){
