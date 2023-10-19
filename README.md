@@ -46,7 +46,7 @@ The AI opponent in this game utilizes the minmax algorithm to make decisions. Th
 ## Cloning the Project
 
 To clone the repository, use the following command:
-```git clone https://github.com/your-username/CChess.git```
+```git clone https://github.com/Maclow42/CChess.git```
 
 ## Installing Dependencies
 
