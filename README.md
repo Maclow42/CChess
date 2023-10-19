@@ -2,33 +2,19 @@
 
 Welcome to CChess, a simple chess game coded in C that allows you to play against an AI using the minmax algorithm or against another person on the same screen. The graphical interface is built using the ncurses library.
 
+## Screenshots
 
-## Table of Contents
-
-- [Screenshots](#screenshots)
-  - [Main Menu](#main-menu)
-  - [Gameplay](#gameplay)
-- [Minmax Algorithm in Chess](#minmax-algorithm-in-chess)
-- [Cloning the Project](#cloning-the-project)
-- [Installing Dependencies](#installing-dependencies)
-- [Compilation](#compilation)
-- [Running the Game](#running-the-game)
-- [Copyright](#copyright)
-- [License](#license)
-
-## Screenshots {#screenshots}
-
-1. **Main Menu:** {#main-menu}
+1. **Main Menu:**
    - Here's the game's main menu, where you can choose between playing alone against the AI or with two players on the same screen.
 
    ![Main Menu](screenshots/menu.png)
 
-2. **Gameplay:** {#gameplay}
+2. **Gameplay:**
    - Once on the game screen, you can move the pieces by clicking on them with the mouse. If you're playing against the AI, it will automatically play after you.
 
    ![Gameplay](screenshots/gameplay.png)
 
-## Minmax Algorithm in Chess {#minmax-algorithm-in-chess}
+## Minmax Algorithm in Chess
 
 The AI opponent in this game utilizes the minmax algorithm to make decisions. The minmax algorithm is a decision-making algorithm used in two-player games, such as chess. Here's a brief explanation:
 
@@ -44,7 +30,7 @@ The AI opponent in this game utilizes the minmax algorithm to make decisions. Th
 4. **Heuristic Evaluation:**
    - The algorithm uses a heuristic evaluation function to assess the desirability of a particular board state. This function assigns a score based on factors like piece values, board control, and positional advantage.
 
-## Cloning the Project {#cloning-the-project}
+## Cloning the Project
 
 To clone the repository, use the following command:
 ```git clone https://github.com/Maclow42/CChess.git```
@@ -62,16 +48,16 @@ On Red Hat-based systems, use:
 On Manjaro-based systems, use:
 ```pamac install ncurses```
 
-## Compilation {#compilation}
+## Compilation
 
 To Navigate, compile and execute the game, use the following command:
 ```cd CChess && make && make run```
 
-## Copyright {#copyright}
+## Credits
 
 Thanks to @TJ Holowaychuk <tj@vision-media.ca> for his doubly linked list implementation. Here's the link to the [github source directory](https://github.com/clibs/list).
 
-## License {#license}
+## License
 (MIT License)
 
 Copyright (c) 2023 Maclow42 <maclow.cartier@hotmail.com>
