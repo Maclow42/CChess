@@ -25,9 +25,9 @@ SRC = 	main.c \
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 
-all: main
+all: cchess
 
-main: ${OBJ}
+cchess: ${OBJ}
 	${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 %.o: %.c
@@ -38,4 +38,7 @@ main: ${OBJ}
 clean:
 	${RM} ${OBJ}
 	${RM} ${DEP}
-	${RM} main
+	${RM} cchess
+
+run: cchess
+	./cchess
