@@ -2,7 +2,7 @@ CC = gcc
 CPPFLAGS = -MMD
 CFLAGS = -Wall -Wextra -O3
 LDFLAGS =
-LDLIBS =
+LDLIBS = -lncursesw
 
 SRC = 	main.c \
 		./src/piece/piece.c \
@@ -19,7 +19,9 @@ SRC = 	main.c \
 		./src/list/list_iterator.c \
 		./src/gtree/gtree.c \
 		./src/stack/stack.c \
-		./src/stack/stack_node.c
+		./src/stack/stack_node.c \
+		./src/UI/menu/menu.c \
+		./src/UI/game/game.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 
