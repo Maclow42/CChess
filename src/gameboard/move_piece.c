@@ -72,6 +72,18 @@ piece* movePiece(game_board* board, coords current_pos, coords dest_pos){
 }
 
 int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
+    /*
+        * Try to move the piece at current_pos to dest_pos
+        * @param board : the game board
+        * @param current_pos : the current position of the piece
+        * @param dest_pos : the destination position of the piece
+        * @return 404 if no piece at current_pos
+        *         -1 if it's not the player's turn
+        *         0 if the piece can't be moved to dest_pos
+        *         3945 if the arrival position is not occupied by a piece of the same color
+        *         13 if the piece can't be moved to dest_pos because it would put the king in check
+        *         1 if the piece has been moved
+    */
     if(board->board[current_pos.posx][current_pos.posy] == NULL){
         printf("No piece at the given position.\n");
         return 404;
@@ -85,7 +97,7 @@ int playerMovePiece(game_board* board, coords current_pos, coords dest_pos){
     switch (isPosAccessible(board, current_pos, dest_pos)){
         case 0:
             printf("Error : The piece can't be moved to the given position.\n");
-            return 301;
+            return 0;
         case 404:
             printf("Error : No piece at the given position.\n");
             return 404;
