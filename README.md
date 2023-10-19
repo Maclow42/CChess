@@ -33,4 +33,7 @@ Contributions are welcome! If you'd like to improve this console chess game, fee
 
 ---
 
+##installation
+install sudo apt-get install libncurses5-dev libncursesw5-dev
+
 Enjoy playing chess with this console game! If you have any questions or suggestions, please don't hesitate to share them.
