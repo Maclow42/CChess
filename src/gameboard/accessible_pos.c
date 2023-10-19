@@ -270,10 +270,18 @@ void getAllMoves_Queen(game_board* board, coords current_pos, list_t* result_lis
     }
 }
 
-bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
+int isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     /*
-    Return true if piece at (currentx,currenty) in board can be moved to (tox, toy), otherwise return false
-    Arguments:
+        * Check if a piece can move from current_pos to dest_pos
+        * @param board : the game board
+        * @param current_pos : the current position of the piece
+        * @param dest_pos : the destination position of the piece
+        * @return 0 if the move is not possible
+        *        1 if the move is possible
+        *        13 if the move is possible but the king is in chess
+        *        404 if there is no piece at the current position
+        *        3945 if the arrival position is occupied by a piece of the same color
+        *        -1 if the coords are not valid
     */
 
     unsigned int currentx = current_pos.posx;
@@ -284,20 +292,18 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 
     // if coords are not valid then return false
     if(!(areCoordsValid(current_pos) && areCoordsValid(dest_pos))){
-        //printf("(%i, %i) to (%i, %i) => invalid coords\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
-        return false;
+        return -1;
     }
 
     // check if there is no piece at the current position
     if(board->board[currentx][currenty] == NULL){
-        //printf("(%i, %i) to (%i, %i) => NULL piece to move\n", current_pos->posx, current_pos->posy, dest_pos->posx, dest_pos->posy);
-        return false;
+        return 404;
     }
 
     if(board->board[tox][toy] != NULL){
         // check if the arrival position is not occupied by a piece of the same color
         if(board->board[tox][toy]->color == board->board[currentx][currenty]->color)
-            return false;
+            return 3945;
     }
 
     bool is_accessible = false;
@@ -327,7 +333,7 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
     }
 
     if(!is_accessible)
-        return false;
+        return 0;
 
     //try to move the piece and see if the king is in chess or mate
     color_t current_color = board->board[currentx][currenty]->color;
@@ -339,7 +345,7 @@ bool isPosAccessible(game_board* board, coords current_pos, coords dest_pos){
 
     restore_state(board);
 
-    return !is_chess;
+    return is_chess ? 13 : true;
 }
 
 list_t* getAccessiblePos(game_board* board, enum color color){
