@@ -85,15 +85,16 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
     init_pair(1, COLOR_WHITE, COLOR_BLACK); // print white on black
     init_pair(2, COLOR_GREEN, COLOR_BLACK); // print black on white
     
+    // window's position to center it
+    int start_y = (LINES - WINDOW_HEIGHT) / 2;
+    int start_x = (COLS - WINDOW_WIDTH) / 2;
+    mvwin(window, start_y, start_x);
+
+
     // Main loop
     int ch; // char read by wgetch
     MEVENT event; // mouse event
     do{
-        // window's position to center it
-        int start_y = (LINES - WINDOW_HEIGHT) / 2;
-        int start_x = (COLS - WINDOW_WIDTH) / 2;
-        mvwin(window, start_y, start_x);
-
         // If start_pos and end_pos are set, try to move the piece
         if(start_pos && end_pos){
             switch(playerMovePiece(game_board, *start_pos, *end_pos))
@@ -121,6 +122,17 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
             // Reset start_pos and end_pos to NULL
             reset_to_NULL_Coords(&start_pos);
             reset_to_NULL_Coords(&end_pos);
+        }
+
+        if(ch && ch == KEY_RESIZE){
+            start_y = (LINES - WINDOW_HEIGHT) / 2;
+            start_x = (COLS - WINDOW_WIDTH) / 2;
+            mvwin(window, start_y, start_x);
+            wclear(window);
+            wrefresh(window);
+            clear();
+            refresh();
+            refresh_display(window, game_board, NULL);
         }
 
         // If mouse click event => get relative coordinates with wmouse_trafo
