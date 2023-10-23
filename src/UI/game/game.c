@@ -2,6 +2,7 @@
 
 #include <ncurses.h>
 #include <wchar.h>
+#include <stdbool.h>
 #include "../../gameboard/gameboard.h"
 #include "../../gameboard/move_piece.h"
 #include "../../gameboard/game_status.h"
@@ -9,6 +10,9 @@
 
 #define WINDOW_HEIGHT 19
 #define WINDOW_WIDTH 37
+
+#define clearALL() {clear(); wrefresh(window); refresh();}
+#define refreshALL() {wrefresh(window); refresh();}
 
 game_status game_board_play_AI(game_board *game_board){
     movement_coords* best_move = getBestMove(game_board, 3);
@@ -32,6 +36,8 @@ void reset_to_NULL_Coords(coords** c){
 }
 
 void refresh_display(WINDOW* window, game_board* game_board, coords* selected_piece){
+    clearALL();
+
     // Allocate memory to stock the result[][] of printBoard
     char** result = (char**)malloc(20 * sizeof(char*));
     for (int i = 0; i < 20; ++i) {
@@ -58,8 +64,7 @@ void refresh_display(WINDOW* window, game_board* game_board, coords* selected_pi
         wattroff(window, COLOR_PAIR(2));
     }
 
-    wrefresh(window);
-    refresh();
+    refreshALL();
 
     // free the memory allocated to result
     for (int i = 0; i < 20; ++i) {
@@ -89,6 +94,8 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
     int start_y = (LINES - WINDOW_HEIGHT) / 2;
     int start_x = (COLS - WINDOW_WIDTH) / 2;
     mvwin(window, start_y, start_x);
+
+    bool display = true;
 
 
     // Main loop
@@ -125,14 +132,29 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
         }
 
         if(ch && ch == KEY_RESIZE){
-            start_y = (LINES - WINDOW_HEIGHT) / 2;
-            start_x = (COLS - WINDOW_WIDTH) / 2;
-            mvwin(window, start_y, start_x);
-            wclear(window);
-            wrefresh(window);
-            clear();
-            refresh();
-            refresh_display(window, game_board, NULL);
+            if(LINES < WINDOW_HEIGHT + 6 || COLS < WINDOW_WIDTH + 10)
+                display = false;
+            else{
+                if(!display){
+                    display = true;
+                    wresize(window, WINDOW_HEIGHT, WINDOW_WIDTH);
+                }
+
+                start_y = (LINES - WINDOW_HEIGHT) / 2;
+                start_x = (COLS - WINDOW_WIDTH) / 2;
+                mvwin(window, start_y, start_x);
+                refresh_display(window, game_board, NULL);
+            }
+        }
+        
+        if(!display){
+            clearALL();
+            char error_msg1[] = "The window is too small";
+            char error_msg2[] = "to display the board";
+            mvprintw(LINES/2, (COLS-strlen(error_msg1))/2, "%s", error_msg1);
+            mvprintw(LINES/2+1, (COLS-strlen(error_msg2))/2, "%s", error_msg2);
+            refreshALL();
+            continue;
         }
 
         // If mouse click event => get relative coordinates with wmouse_trafo
