@@ -3,6 +3,7 @@
 
 #include "./src/UI/game/game.h"
 #include "./src/UI/menu/menu.h"
+#include "./src/UI/color_choice/color_choice.h"
 
 int main(){
     setlocale(LC_ALL, ""); //Config environment for UTF-8
@@ -29,7 +30,10 @@ int main(){
         int nb_player = display_menu(boite);
         if(nb_player == -1)
             break;
-        game_UI(boite, nb_player, WHITE);
+        int player_color_view = display_color_choice(boite);
+        if(player_color_view == -1)
+            continue;
+        game_UI(boite, nb_player, player_color_view == 1 ? WHITE : BLACK);
     }
 
     endwin(); // Quit ncurses

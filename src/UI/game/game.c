@@ -35,7 +35,7 @@ void reset_to_NULL_Coords(coords** c){
     free(tmp);
 }
 
-void refresh_display(WINDOW* window, game_board* game_board, coords* selected_piece){
+void refresh_display(WINDOW* window, game_board* game_board, coords* selected_piece, color_t player_color_view){
     clearALL();
 
     // Allocate memory to stock the result[][] of printBoard
@@ -45,7 +45,7 @@ void refresh_display(WINDOW* window, game_board* game_board, coords* selected_pi
     }
 
     // Get the new string of board to display
-    printBoard(game_board, BLACK, result);
+    printBoard(game_board, player_color_view, result);
     // Print the board
     wattron(window, COLOR_PAIR(1));
     for (int i = 0; i < 20; i++) {
@@ -60,7 +60,10 @@ void refresh_display(WINDOW* window, game_board* game_board, coords* selected_pi
     if(selected_piece){
         print_piece(piece, game_board->board[selected_piece->posx][selected_piece->posy]);
         wattron(window, COLOR_PAIR(2));
-        mvwaddstr(window, selected_piece->posy*2+2, selected_piece->posx*4+3, piece);
+        if(player_color_view == WHITE)
+            mvwaddstr(window, (8-selected_piece->posy)*2, selected_piece->posx*4+3, piece);
+        else
+            mvwaddstr(window, selected_piece->posy*2+2, selected_piece->posx*4+3, piece);
         wattroff(window, COLOR_PAIR(2));
     }
 
@@ -73,7 +76,7 @@ void refresh_display(WINDOW* window, game_board* game_board, coords* selected_pi
     free(result);
 }
 
-int game_UI(WINDOW* window, int nb_player, color_t playerColor){
+int game_UI(WINDOW* window, int nb_player, color_t player_color_view){
     // Init game board
     game_board *game_board = newBoard();
     initGameBoard(game_board);
@@ -99,39 +102,12 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
 
 
     // Main loop
-    int ch; // char read by wgetch
+    int ch = -1; // char read by wgetch
     MEVENT event; // mouse event
     do{
-        // If start_pos and end_pos are set, try to move the piece
-        if(start_pos && end_pos){
-            switch(playerMovePiece(game_board, *start_pos, *end_pos))
-            {
-                case ERROR_INVALID_MOVE:
-                    attron(COLOR_PAIR(-1));
-                    mvprintw(2, 1, "Error : the piece can't be moved to the given position");
-                    attroff(COLOR_PAIR(-1));
-                    break;
-                case ERROR_CHESS:
-                    attron(COLOR_PAIR(-1));
-                    mvprintw(2, 1, "Error : the piece can't be moved to the given position because it would put the king in check");
-                    attroff(COLOR_PAIR(-1));
-                    break;
-                case OK_DONE:
-                    if (nb_player == 1){
-                        refresh_display(window, game_board, NULL);
-                        mvprintw(1, 1, "IA is playing...     ");
-                        refresh();
-                        game_board_play_AI(game_board);
-                    }
-                default:
-                    break;
-            }
-            // Reset start_pos and end_pos to NULL
-            reset_to_NULL_Coords(&start_pos);
-            reset_to_NULL_Coords(&end_pos);
-        }
-
-        if(ch && ch == KEY_RESIZE){
+        // dWindow display gestion
+        // If window is resized
+        if(ch == KEY_RESIZE){
             if(LINES < WINDOW_HEIGHT + 6 || COLS < WINDOW_WIDTH + 10)
                 display = false;
             else{
@@ -143,10 +119,11 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
                 start_y = (LINES - WINDOW_HEIGHT) / 2;
                 start_x = (COLS - WINDOW_WIDTH) / 2;
                 mvwin(window, start_y, start_x);
-                refresh_display(window, game_board, NULL);
+                refresh_display(window, game_board, NULL, player_color_view);
             }
         }
         
+        // If window is too small to display the board
         if(!display){
             clearALL();
             char error_msg1[] = "The window is too small";
@@ -157,45 +134,82 @@ int game_UI(WINDOW* window, int nb_player, color_t playerColor){
             continue;
         }
 
-        // If mouse click event => get relative coordinates with wmouse_trafo
-        if (ch && ch == KEY_MOUSE) {
-            if (getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
-                // If mouse click is outside the board
-                if(event.y < start_y + 2 || event.y >= start_y + WINDOW_HEIGHT - 1 || event.x < start_x + 3 || event.x >= start_x + WINDOW_WIDTH - 2)
-                    event.y = -1, event.x = -1;
-                else
-                    wmouse_trafo(window, &event.y, &event.x, FALSE);
+        //if 1 player mode and it's the IA turn, play it
+        if (nb_player == 1 && game_board->to_play != player_color_view){
+            refresh_display(window, game_board, NULL, player_color_view);
+            mvprintw(1, 1, "IA is playing...     ");
+            refresh();
+            game_board_play_AI(game_board);
+        }
+
+        else{
+            // If start_pos and end_pos are set, try to move the piece
+            if(start_pos && end_pos){
+                switch(playerMovePiece(game_board, *start_pos, *end_pos))
+                {
+                    case ERROR_INVALID_MOVE:
+                        attron(COLOR_PAIR(-1));
+                        mvprintw(2, 1, "Error : the piece can't be moved to the given position");
+                        attroff(COLOR_PAIR(-1));
+                        break;
+                    case ERROR_CHESS:
+                        attron(COLOR_PAIR(-1));
+                        mvprintw(2, 1, "Error : the piece can't be moved to the given position because it would put the king in check");
+                        attroff(COLOR_PAIR(-1));
+                        break;
+                    case OK_DONE:
+                        break;
+                    default:
+                        break;
+                }
+                // Reset start_pos and end_pos to NULL
+                reset_to_NULL_Coords(&start_pos);
+                reset_to_NULL_Coords(&end_pos);
+            }
+
+            // If mouse click event => get relative coordinates with wmouse_trafo
+            if (ch == KEY_MOUSE) {
+                if (getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
+                    // If mouse click is outside the board
+                    if(event.y < start_y + 2 || event.y >= start_y + WINDOW_HEIGHT - 1 || event.x < start_x + 3 || event.x >= start_x + WINDOW_WIDTH - 2)
+                        event.y = -1, event.x = -1;
+                    else
+                        wmouse_trafo(window, &event.y, &event.x, FALSE);
+                }
+            }
+
+            // Get the piece pointed by the mouse by working on the relative coordinates
+            // If click on the board, process click (exclude line_id and letters)
+            if(event.x > 0 && event.x <= WINDOW_WIDTH-5 && event.y > 0 && event.y <= WINDOW_HEIGHT-3){
+                int posx = event.x/4 - 1, posy = event.y/2 - 1;
+                if(player_color_view == WHITE)
+                    posy = 7 - posy;
+                // Save its coordinates
+                if(!start_pos){
+                    if(game_board->board[posx][posy] && game_board->board[posx][posy]->color == game_board->to_play)
+                        start_pos = Coords(posx, posy);
+                    else
+                        start_pos = NULL;
+                }
+                else{
+                    if(areCoordsEqual((*start_pos), ((coords){posx, posy})))
+                        reset_to_NULL_Coords(&start_pos);
+                    else if(game_board->board[posx][posy] && game_board->board[posx][posy]->color == game_board->to_play)
+                        start_pos = Coords(posx, posy);
+                    else
+                        end_pos = Coords(posx, posy);
+                }
+            }
+            else{ // if click outside the board, reset start_pos and end_pos
+                reset_to_NULL_Coords(&start_pos);
+                reset_to_NULL_Coords(&end_pos);
             }
         }
 
-        // Get the piece pointed by the mouse by working on the relative coordinates
-        // If click on the board, process click (exclude line_id and letters)
-        if(event.x > 0 && event.x <= WINDOW_WIDTH-5 && event.y > 0 && event.y <= WINDOW_HEIGHT-3){
-            int posx = event.x/4 - 1, posy = event.y/2 - 1;
-            // Save its coordinates
-            if(!start_pos){
-                if(game_board->board[posx][posy] && game_board->board[posx][posy]->color == game_board->to_play)
-                    start_pos = Coords(posx, posy);
-                else
-                    start_pos = NULL;
-            }
-            else{
-                if(areCoordsEqual((*start_pos), ((coords){posx, posy})))
-                    reset_to_NULL_Coords(&start_pos);
-                else if(game_board->board[posx][posy] && game_board->board[posx][posy]->color == game_board->to_play)
-                    start_pos = Coords(posx, posy);
-                else
-                    end_pos = Coords(posx, posy);
-            }
-        }
-        else{ // if click outside the board, reset start_pos and end_pos
-            reset_to_NULL_Coords(&start_pos);
-            reset_to_NULL_Coords(&end_pos);
-        }
 
-        refresh_display(window, game_board, start_pos);
+        refresh_display(window, game_board, start_pos, player_color_view);
 
-    }while(end_pos || (ch = wgetch(window)) != 'q'); // Use 'q' to quit
+    }while(end_pos || (nb_player == 1 && game_board->to_play != player_color_view) || (ch = wgetch(window)) != 'q'); // Use 'q' to quit
 
     free(start_pos);
     free(end_pos);

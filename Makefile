@@ -21,6 +21,7 @@ SRC = 	main.c \
 		./src/stack/stack.c \
 		./src/stack/stack_node.c \
 		./src/UI/menu/menu.c \
+		./src/UI/color_choice/color_choice.c \
 		./src/UI/game/game.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
