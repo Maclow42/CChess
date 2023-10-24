@@ -28,7 +28,7 @@ int evaluateBoard(game_board* board){
             return -MATE_MALUS;
         case BLACK_MATE:
             return MATE_MALUS;
-        case PAT:
+        case STALEMATE:
             return 0;
         default:
             break;

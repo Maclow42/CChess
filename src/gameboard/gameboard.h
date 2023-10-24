@@ -14,7 +14,7 @@ typedef enum{
     WHITE_MATE,
     BLACK_CHESS,
     BLACK_MATE,
-    PAT,
+    STALEMATE,
     RAS
 }game_status;
 

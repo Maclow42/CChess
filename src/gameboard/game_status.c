@@ -4,7 +4,7 @@
 game_status getGameStatus(game_board* board)
 {
     if(board->nb_piece == 2)
-        return PAT;
+        return STALEMATE;
 
     bool white_chess = isInChess(board, WHITE);
     bool white_mate = isMate(board, WHITE);
@@ -15,7 +15,7 @@ game_status getGameStatus(game_board* board)
         return WHITE_CHESS;
     }
     if(white_mate)
-        return PAT;
+        return STALEMATE;
 
     bool black_chess = isInChess(board, BLACK);
     bool black_mate = isMate(board, BLACK);
@@ -26,7 +26,7 @@ game_status getGameStatus(game_board* board)
         return BLACK_CHESS;
     }
     if(black_mate)
-        return PAT;
+        return STALEMATE;
 
     return RAS;
 }

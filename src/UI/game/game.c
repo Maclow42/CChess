@@ -136,13 +136,13 @@ int game_UI(WINDOW* window, int nb_player, color_t player_color_view){
         }
 
         // If the game is ended
-        if(status == BLACK_MATE || status == WHITE_MATE || status == PAT){
+        if(status == BLACK_MATE || status == WHITE_MATE || status == STALEMATE){
             if(status == BLACK_MATE)
                 mvprintw(1, 1, "Black is checkmated ! ");
             else if(status == WHITE_MATE)
                 mvprintw(1, 1, "White is checkmated ! ");
-            else if(status == PAT)
-                mvprintw(1, 1, "Pat ! ");
+            else if(status == STALEMATE)
+                mvprintw(1, 1, "Stalemate ! ");
             
             refresh();
             
