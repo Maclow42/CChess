@@ -37,7 +37,7 @@ int display_color_choice(WINDOW *window) {
 
         //display choices
         char *choices[] = {"Play as White", "Play as Black"};
-        int x = width/4 + 2;
+        int x = width/4;
         int y = height/2-1;
         for (int i = 0; i < 2; ++i) {
             if (highlight == i + 1) {
