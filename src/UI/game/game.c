@@ -52,7 +52,7 @@ void refresh_display(WINDOW* window, game_board* game_board, coords* selected_pi
         mvwprintw(window, i, 0, "%s", result[i]);
     }
     mvprintw(1, 1, "Color to play : %s", game_board->to_play == WHITE ? "WHITE" : "BLACK");
-    mvprintw(LINES - 2, 1, "Press 'q' to quit");
+    mvprintw(LINES - 2, 1, "Press 'm' to return to menu");
     wattroff(window, COLOR_PAIR(2));
 
     char piece[6] = "NULL";
@@ -104,6 +104,7 @@ int game_UI(WINDOW* window, int nb_player, color_t player_color_view){
     // Main loop
     int ch = -1; // char read by wgetch
     MEVENT event; // mouse event
+    game_status status = RAS;
     do{
         // dWindow display gestion
         // If window is resized
@@ -132,6 +133,23 @@ int game_UI(WINDOW* window, int nb_player, color_t player_color_view){
             mvprintw(LINES/2+1, (COLS-strlen(error_msg2))/2, "%s", error_msg2);
             refreshALL();
             continue;
+        }
+
+        // If the game is ended
+        if(status == BLACK_MATE || status == WHITE_MATE || status == PAT){
+            if(status == BLACK_MATE)
+                mvprintw(1, 1, "Black is checkmated ! ");
+            else if(status == WHITE_MATE)
+                mvprintw(1, 1, "White is checkmated ! ");
+            else if(status == PAT)
+                mvprintw(1, 1, "Pat ! ");
+            
+            refresh();
+            
+            if((ch = wgetch(window)) != 'm')
+                continue;
+            else
+                break;
         }
 
         //if 1 player mode and it's the IA turn, play it
@@ -206,10 +224,11 @@ int game_UI(WINDOW* window, int nb_player, color_t player_color_view){
             }
         }
 
-
+        status = getGameStatus(game_board);
         refresh_display(window, game_board, start_pos, player_color_view);
+        
 
-    }while(end_pos || (nb_player == 1 && game_board->to_play != player_color_view) || (ch = wgetch(window)) != 'q'); // Use 'q' to quit
+    }while(end_pos || (nb_player == 1 && game_board->to_play != player_color_view) || (ch = wgetch(window)) != 'm'); // Use 'm' to return to menu
 
     free(start_pos);
     free(end_pos);
